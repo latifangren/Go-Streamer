@@ -23,6 +23,8 @@ import (
 	"go-streamer/internal/sysinfo"
 	"go-streamer/internal/transcoder"
 	"go-streamer/internal/tunnel"
+
+	streamer "go-streamer"
 )
 
 // Server mengorkestrasi konfigurasi routing HTTP REST, WebSocket Hub, background daemon worker, dan repositori.
@@ -171,6 +173,17 @@ func (s *Server) setupRoutes() {
 		// WebSocket Endpoint (/api/v1/ws) untuk frontend useWebSocket
 		r.Get("/ws", s.wsHub.ServeWS)
 
+		// Root API Info
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
+				"app":     "Go-Streamer",
+				"version": s.platform.Version,
+				"status":  "operational",
+				"docs":    "/docs",
+			})
+		})
+
 		// Health & Platform Info
 		r.Get("/health", s.handleHealth)
 		r.Get("/system/info", s.handlePlatformInfo)
@@ -229,6 +242,10 @@ func (s *Server) setupRoutes() {
 			ar.Post("/test", s.alertHandler.TestAlert)
 		})
 	})
+
+	// Mount Embedded SPA Frontend (Fallback for all non-API routes)
+	fsys := streamer.GetFileSystem()
+	s.router.Handle("/*", http.FileServer(fsys))
 }
 
 // startBackgroundWorkers menjalankan tugas latar belakang: telemetri sistem (2s), proactive alert triggers, dan telemetri streaming FFmpeg.

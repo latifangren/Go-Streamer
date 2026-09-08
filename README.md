@@ -143,10 +143,10 @@ cd ..
 
 # 3. Kompilasi binary Go (Zero-CGO Standalone)
 # Target Host Lokal:
-go build -v -o bin/go-streamer cmd/server/main.go embed.go
+go build -v -o bin/go-streamer ./cmd/server
 
 # Atau Cross-Compile ke Linux ARM64 (Android):
-CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -v -o bin/go-streamer-linux-arm64 cmd/server/main.go embed.go
+CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -v -o bin/go-streamer-linux-arm64 ./cmd/server
 ```
 
 Atau cukup gunakan script otomatisasi:

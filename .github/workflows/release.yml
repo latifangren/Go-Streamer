@@ -34,6 +34,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
+          cache: false
 
       - name: Compile Standalone Zero-CGO Binaries
         env:
@@ -43,19 +44,19 @@ jobs:
           mkdir -p dist
 
           # 1. Linux ARM64 (Android Termux / Magisk / SBC)
-          GOOS=linux GOARCH=arm64 go build -trimpath -ldflags="$LDFLAGS" -o dist/go-streamer-linux-arm64 cmd/server/main.go embed.go
+          GOOS=linux GOARCH=arm64 go build -trimpath -ldflags="$LDFLAGS" -o dist/go-streamer-linux-arm64 ./cmd/server
 
           # 2. Linux ARM 32-bit (Older Pi / Android 32-bit)
-          GOOS=linux GOARCH=arm go build -trimpath -ldflags="$LDFLAGS" -o dist/go-streamer-linux-arm cmd/server/main.go embed.go
+          GOOS=linux GOARCH=arm go build -trimpath -ldflags="$LDFLAGS" -o dist/go-streamer-linux-arm ./cmd/server
 
           # 3. Linux AMD64 (VPS Server / Cloud)
-          GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="$LDFLAGS" -o dist/go-streamer-linux-amd64 cmd/server/main.go embed.go
+          GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="$LDFLAGS" -o dist/go-streamer-linux-amd64 ./cmd/server
 
           # 4. Windows AMD64
-          GOOS=windows GOARCH=amd64 go build -trimpath -ldflags="$LDFLAGS" -o dist/go-streamer-windows-amd64.exe cmd/server/main.go embed.go
+          GOOS=windows GOARCH=amd64 go build -trimpath -ldflags="$LDFLAGS" -o dist/go-streamer-windows-amd64.exe ./cmd/server
 
           # 5. macOS Apple Silicon (Darwin ARM64)
-          GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags="$LDFLAGS" -o dist/go-streamer-darwin-arm64 cmd/server/main.go embed.go
+          GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags="$LDFLAGS" -o dist/go-streamer-darwin-arm64 ./cmd/server
 
       - name: Package Magisk Module Zip (Android Root)
         run: |
