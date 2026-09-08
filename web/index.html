@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c8f5d0' stroke='%23000' stroke-width='2'><rect x='2' y='3' width='20' height='14' rx='2'/><polygon points='10 8 16 11 10 14 10 8' fill='%23000'/></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GO-STREAMER // Authentic Neobrutalism RTMP Node</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,500;0,600;0,700;0,800;1,700&family=JetBrains+Mono:wght@500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      ::selection {
+        background-color: #000000;
+        color: #ffffff;
+      }
+      .neo-btn {
+        transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .neo-btn:active {
+        transform: translate(2px, 2px);
+        box-shadow: 0px 0px 0px #000 !important;
+      }
+      @keyframes subtle-pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.6; transform: scale(0.92); }
+      }
+      .pulse-dot {
+        animation: subtle-pulse 1.5s infinite ease-in-out;
+      }
+    </style>
+  </head>
+  <body class="bg-[#daf0fc] text-neutral-900 font-sans antialiased min-h-screen p-3 md:p-5 selection:bg-black selection:text-white">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

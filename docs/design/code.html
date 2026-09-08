@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GO-STREAMER // Authentic Neobrutalism RTMP Node</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,500;0,600;0,700;0,800;1,700&amp;family=JetBrains+Mono:wght@500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            neoCanvas: "#daf0fc",
+            neoMint: "#c8f5d0",
+            neoBlue: "#c2e7ff",
+            neoLavender: "#e2daf9",
+            neoCoral: "#ffd5cc",
+            neoYellow: "#fff0a3",
+            neoPink: "#ffd4e5",
+            neoDark: "#111827",
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          boxShadow: {
+            'neo-sm': '2px 2px 0px #000000',
+            'neo': '3px 3px 0px #000000',
+            'neo-md': '4px 4px 0px #000000',
+            'neo-lg': '6px 6px 0px #000000',
+            'neo-xl': '8px 8px 0px #000000',
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    ::selection {
+      background-color: #000000;
+      color: #ffffff;
+    }
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: 700;
+      font-style: normal;
+      font-size: 18px;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+      text-transform: none;
+      letter-spacing: normal;
+      word-wrap: normal;
+      white-space: nowrap;
+      direction: ltr;
+    }
+    .neo-btn {
+      transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .neo-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 0px 0px 0px #000 !important;
+    }
+    @keyframes subtle-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.92); }
+    }
+    .pulse-dot {
+      animation: subtle-pulse 1.5s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-[#daf0fc] text-neutral-900 font-sans antialiased min-h-screen p-3 md:p-5 selection:bg-black selection:text-white">
+<!-- ================= TOP HEADER BAR ================= -->
+<header class="w-full bg-white border-[2.5px] border-black rounded-xl p-3 md:px-5 md:py-3.5 shadow-[4px_4px_0px_#000] mb-4 flex flex-wrap items-center justify-between gap-3">
+<!-- Brand / Identifier -->
+<div class="flex items-center gap-2.5">
+<div class="bg-[#c8f5d0] border-2 border-black rounded-lg px-2.5 py-1.5 flex items-center gap-2 shadow-[2px_2px_0px_#000]">
+<span class="bg-black text-[#c8f5d0] font-mono font-extrabold text-xs px-1.5 py-0.5 rounded">GO</span>
+<span class="font-extrabold tracking-tight text-sm md:text-base font-mono">GO-STREAMER</span>
+</div>
+<span class="bg-white border-2 border-black rounded-md px-2 py-0.5 text-xs font-mono font-bold shadow-[2px_2px_0px_#000] hidden sm:inline-block">v1.2-standalone</span>
+</div>
+<!-- Center Search & Live Indicators -->
+<div class="flex-1 max-w-xl mx-2 hidden lg:flex items-center gap-2">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-neutral-500 text-sm">search</span>
+<input class="w-full bg-[#f8f9fb] border-2 border-black rounded-lg py-1.5 pl-9 pr-3 text-xs font-mono placeholder:text-neutral-500 focus:outline-none focus:ring-0 focus:bg-white shadow-[2px_2px_0px_#000]" placeholder="Filter streams, sockets, ffmpeg logs..." type="text"/>
+</div>
+<div class="flex items-center gap-1.5 shrink-0 font-mono text-[11px]">
+<div class="bg-[#c2e7ff] border-2 border-black px-2 py-1 rounded-md font-bold shadow-[2px_2px_0px_#000] flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-emerald-600 pulse-dot"></span>
+          NET TX: 2,480 kb/s
+        </div>
+<div class="bg-[#fff0a3] border-2 border-black px-2 py-1 rounded-md font-bold shadow-[2px_2px_0px_#000]">
+          UPTIME: 14d 06h
+        </div>
+</div>
+</div>
+<!-- Right Profile / Magisk Root Tag -->
+<div class="flex items-center gap-2">
+<div class="bg-[#c8f5d0] border-2 border-black rounded-lg px-3 py-1.5 flex items-center gap-2 shadow-[2px_2px_0px_#000]">
+<span class="material-symbols-outlined text-black bg-[#ffd5cc] border border-black p-0.5 rounded" style="font-size: 15px;">shield_lock</span>
+<div class="leading-tight text-left">
+<p class="text-[11px] font-mono font-extrabold uppercase text-black">Root Supervisor</p>
+<p class="text-[9px] font-mono font-bold text-neutral-700">OOM_SCORE: -1000</p>
+</div>
+</div>
+<button class="neo-btn bg-[#ffd5cc] hover:bg-[#ffb4a6] border-2 border-black font-mono font-extrabold text-xs px-3 py-2 rounded-lg shadow-[3px_3px_0px_#000] flex items-center gap-1" onclick="triggerKillSwitch()">
+<span class="material-symbols-outlined" style="font-size: 16px;">power_settings_new</span>
+<span class="hidden sm:inline">KILL SWITCH</span>
+</button>
+</div>
+</header>
+<!-- ================= MASTER LAYOUT (SIDEBAR + MAIN CANVAS) ================= -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+<!-- LEFT NAVIGATION BAR (Authentic Neobrutalist Pastel Sidebar) -->
+<aside class="lg:col-span-3 xl:col-span-2">
+<div class="bg-[#c8f5d0] border-[2.5px] border-black rounded-xl p-3 shadow-[5px_5px_0px_#000] sticky top-4 flex flex-col justify-between min-h-[580px]">
+<div>
+<div class="px-2 py-1.5 mb-3 border-b-2 border-black pb-2.5 flex items-center justify-between">
+<span class="font-mono font-extrabold text-xs tracking-wider uppercase">OPERATIONAL NODE</span>
+<span class="w-2.5 h-2.5 rounded-full bg-black"></span>
+</div>
+<!-- Navigation Links -->
+<nav class="space-y-2 font-mono text-xs font-bold">
+<button class="neo-btn nav-tab-btn w-full text-left bg-white text-black border-2 border-black p-2.5 rounded-lg shadow-[3px_3px_0px_#000] flex items-center justify-between" id="nav-slots" onclick="switchTab('slots')">
+<span class="flex items-center gap-2">
+<span class="material-symbols-outlined text-base">sensors</span> STREAM SLOTS
+</span>
+<span class="bg-[#ffd5cc] border border-black px-1.5 py-0.2 rounded text-[10px]">1 ACTIVE</span>
+</button>
+<button class="neo-btn nav-tab-btn w-full text-left bg-[#f3fbf5] hover:bg-white text-black border-2 border-black p-2.5 rounded-lg shadow-[2px_2px_0px_#000] flex items-center justify-between" id="nav-assets" onclick="switchTab('assets')">
+<span class="flex items-center gap-2">
+<span class="material-symbols-outlined text-base">video_library</span>
+VIDEO &amp; CODEC
+</span>
+<span class="bg-[#c2e7ff] border border-black px-1.5 py-0.2 rounded text-[10px]">TOOLS</span>
+</button>
+<button class="neo-btn nav-tab-btn w-full text-left bg-[#f3fbf5] hover:bg-white text-black border-2 border-black p-2.5 rounded-lg shadow-[2px_2px_0px_#000] flex items-center justify-between" id="nav-storage" onclick="switchTab('storage')">
+<span class="flex items-center gap-2">
+<span class="material-symbols-outlined text-base">event_note</span>
+SCHEDULES &amp; CRON
+</span>
+<span class="bg-[#ffd4e5] border border-black px-1.5 py-0.2 rounded text-[10px]">GUARD</span>
+</button>
+<button class="neo-btn nav-tab-btn w-full text-left bg-[#f3fbf5] hover:bg-white text-black border-2 border-black p-2.5 rounded-lg shadow-[2px_2px_0px_#000] flex items-center justify-between" id="nav-remote" onclick="switchTab('remote')">
+<span class="flex items-center gap-2">
+<span class="material-symbols-outlined text-base">public</span>
+REMOTE &amp; ALERTS
+</span>
+<span class="bg-[#fff0a3] border border-black px-1.5 py-0.2 rounded text-[10px]">TUNNEL</span>
+</button>
+<button class="neo-btn nav-tab-btn w-full text-left bg-[#f3fbf5] hover:bg-white text-black border-2 border-black p-2.5 rounded-lg shadow-[2px_2px_0px_#000] flex items-center justify-between" id="nav-logs" onclick="switchTab('logs')">
+<span class="flex items-center gap-2">
+<span class="material-symbols-outlined text-base">terminal</span>
+FFMPEG LOGS
+</span>
+<span class="bg-[#fff0a3] border border-black px-1.5 py-0.2 rounded text-[10px]">LIVE</span>
+</button>
+<button class="neo-btn nav-tab-btn w-full text-left bg-[#f3fbf5] hover:bg-white text-black border-2 border-black p-2.5 rounded-lg shadow-[2px_2px_0px_#000] flex items-center justify-between" id="nav-system" onclick="switchTab('system')">
+<span class="flex items-center gap-2">
+<span class="material-symbols-outlined text-base">settings_applications</span>
+SYSTEM &amp; MAGISK
+</span>
+<span class="bg-[#e2daf9] border border-black px-1.5 py-0.2 rounded text-[10px]">OK</span>
+</button>
+</nav>
+</div>
+<!-- Sidebar Footer Platform Card -->
+<div class="mt-6 bg-white border-2 border-black rounded-lg p-2.5 shadow-[3px_3px_0px_#000] text-[11px] font-mono">
+<div class="flex items-center gap-1.5 font-bold mb-1">
+<span class="material-symbols-outlined text-black" style="font-size: 16px;">phone_android</span>
+<span class="">Android ARM64</span>
+</div>
+<p class="text-neutral-600 text-[10px] mb-2 leading-tight">Magisk Root Native Daemon Termux UID:0</p>
+<div class="flex items-center justify-between border-t border-neutral-300 pt-1.5">
+<span class="text-[10px] text-neutral-500">Wakelock:</span>
+<span class="bg-[#c8f5d0] border border-black px-1 text-[9px] font-bold">ACTIVE</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- RIGHT MAIN CONTENT WORKSPACE -->
+<main class="lg:col-span-9 xl:col-span-10 space-y-4">
+<!-- TOP STATUS HERO BANNER -->
+<section class="bg-white border-[2.5px] border-black rounded-xl p-4 md:p-5 shadow-[5px_5px_0px_#000] flex flex-wrap items-center justify-between gap-4">
+<div>
+<div class="flex items-center gap-2 mb-1 flex-wrap">
+<span class="bg-[#fff0a3] border border-black font-mono font-extrabold text-[10px] px-2 py-0.5 rounded shadow-[1px_1px_0px_#000]">
+DAEMON STATUS • MARCH 2026
+</span>
+<span class="bg-[#c2e7ff] border border-black font-mono font-bold text-[10px] px-2 py-0.5 rounded shadow-[1px_1px_0px_#000]">
+TERMUX HOST
+</span>
+<span class="bg-[#ffd4e5] border border-black font-mono font-bold text-[10px] px-2 py-0.5 rounded shadow-[1px_1px_0px_#000]">
+OVERLAP GUARD ON
+</span>
+</div>
+<h1 class="text-xl md:text-2xl font-black uppercase tracking-tight text-neutral-900">
+Control Desk &amp; RTMP Telemetry
+</h1>
+<p class="text-xs md:text-sm font-medium text-neutral-600 mt-0.5">
+Zero-transcode hardware stream pipeline with Concat Playlist loops, Quick Tunnels &amp; Health Checks.
+</p>
+</div>
+<div class="flex items-center gap-2">
+<div class="bg-[#c8f5d0] border-2 border-black rounded-lg px-3.5 py-2 font-mono shadow-[3px_3px_0px_#000] flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-emerald-600 border border-black pulse-dot"></span>
+<div>
+<p class="text-[10px] font-extrabold text-neutral-700 uppercase leading-none">TARGET PIPELINE</p>
+<p class="text-xs font-black text-black leading-tight">STREAMING ACTIVE</p>
+</div>
+</div>
+<button class="neo-btn bg-white hover:bg-neutral-100 border-2 border-black rounded-lg p-2.5 shadow-[3px_3px_0px_#000]" onclick="refreshMetrics()" title="Reload Data">
+<span class="material-symbols-outlined" style="font-size: 18px;">refresh</span>
+</button>
+</div>
+</section>
+<!-- 4 COLORFUL METRICS CARDS WITH NEOBRUTAL WAVY CURVES -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+<!-- Card 1: CPU LOAD -->
+<div class="bg-[#c2e7ff] border-[2.5px] border-black rounded-xl p-4 shadow-[4px_4px_0px_#000] flex flex-col justify-between relative overflow-hidden">
+<div class="flex justify-between items-start mb-2">
+<div>
+<p class="font-mono text-[11px] font-extrabold uppercase text-neutral-800">CPU LOAD</p>
+<h3 class="text-3xl font-black font-mono tracking-tight text-black mt-0.5" id="metric-cpu">12.4%</h3>
+</div>
+<div class="bg-white border-2 border-black p-1.5 rounded-lg shadow-[2px_2px_0px_#000]">
+<span class="material-symbols-outlined text-black" style="font-size: 20px;">memory</span>
+</div>
+</div>
+<p class="text-xs font-semibold text-neutral-700 mb-2">Optimal Passthrough (8 Cores)</p>
+<svg class="w-full h-7 stroke-black fill-none stroke-[2.5]" preserveaspectratio="none" viewbox="0 0 200 40">
+<path d="M0 25 Q 25 5, 50 25 T 100 25 T 150 15 T 200 28"></path>
+</svg>
+</div>
+<!-- Card 2: RAM USAGE -->
+<div class="bg-[#e2daf9] border-[2.5px] border-black rounded-xl p-4 shadow-[4px_4px_0px_#000] flex flex-col justify-between relative overflow-hidden">
+<div class="flex justify-between items-start mb-2">
+<div>
+<p class="font-mono text-[11px] font-extrabold uppercase text-neutral-800">RAM ALLOCATED</p>
+<h3 class="text-3xl font-black font-mono tracking-tight text-black mt-0.5">1.18 <span class="text-base font-bold">GB</span></h3>
+</div>
+<div class="bg-white border-2 border-black p-1.5 rounded-lg shadow-[2px_2px_0px_#000]">
+<span class="material-symbols-outlined text-black" style="font-size: 20px;">pie_chart</span>
+</div>
+</div>
+<p class="text-xs font-semibold text-neutral-700 mb-2">of 3.84 GB LPDDR Memory</p>
+<svg class="w-full h-7 stroke-black fill-none stroke-[2.5]" preserveaspectratio="none" viewbox="0 0 200 40">
+<path d="M0 30 Q 35 10, 70 26 T 140 18 T 200 22"></path>
+</svg>
+</div>
+<!-- Card 3: SOC THERMAL -->
+<div class="bg-[#ffd5cc] border-[2.5px] border-black rounded-xl p-4 shadow-[4px_4px_0px_#000] flex flex-col justify-between relative overflow-hidden">
+<div class="flex justify-between items-start mb-2">
+<div>
+<p class="font-mono text-[11px] font-extrabold uppercase text-neutral-800">SOC TEMP &amp; POWER</p>
+<h3 class="text-3xl font-black font-mono tracking-tight text-black mt-0.5">41.2°C</h3>
+</div>
+<div class="bg-white border-2 border-black p-1.5 rounded-lg shadow-[2px_2px_0px_#000]">
+<span class="material-symbols-outlined text-black" style="font-size: 20px;">device_thermostat</span>
+</div>
+</div>
+<p class="text-xs font-semibold text-neutral-700 mb-2">Threshold Alert set at &gt;48°C</p>
+<svg class="w-full h-7 stroke-black fill-none stroke-[2.5]" preserveaspectratio="none" viewbox="0 0 200 40">
+<path d="M0 20 Q 30 35, 60 15 T 120 25 T 180 12 T 200 24"></path>
+</svg>
+</div>
+<!-- Card 4: DISK STORAGE -->
+<div class="bg-[#c8f5d0] border-[2.5px] border-black rounded-xl p-4 shadow-[4px_4px_0px_#000] flex flex-col justify-between relative overflow-hidden">
+<div class="flex justify-between items-start mb-2">
+<div>
+<p class="font-mono text-[11px] font-extrabold uppercase text-neutral-800">INTERNAL DISK</p>
+<h3 class="text-3xl font-black font-mono tracking-tight text-black mt-0.5">38.2 <span class="text-base font-bold">GB</span></h3>
+</div>
+<div class="bg-white border-2 border-black p-1.5 rounded-lg shadow-[2px_2px_0px_#000]">
+<span class="material-symbols-outlined text-black" style="font-size: 20px;">hard_drive</span>
+</div>
+</div>
+<p class="text-xs font-semibold text-neutral-700 mb-2">Low disk trigger: &lt;5 GB pool</p>
+<svg class="w-full h-7 stroke-black fill-none stroke-[2.5]" preserveaspectratio="none" viewbox="0 0 200 40">
+<path d="M0 15 Q 40 32, 80 18 T 160 30 T 200 12"></path>
+</svg>
+</div>
+</section>
+<!-- TAB 1 CONTENT: DUAL STREAM SLOTS -->
+<div class="space-y-4" id="tab-slots">
+<!-- Helpful Notification Pill Banner -->
+<div class="bg-[#fff0a3] border-2 border-black rounded-xl p-3 shadow-[3px_3px_0px_#000] flex items-center gap-3">
+<span class="material-symbols-outlined text-black bg-white border border-black p-1 rounded-md" style="font-size: 18px;">lightbulb</span>
+<p class="text-xs font-bold text-neutral-900 leading-snug">
+<span class="uppercase font-mono font-extrabold">Notice:</span> Passthrough mode (-c copy) operates directly without re-encoding video frames. Concat Demuxer sequential playlists stream uninterrupted without CPU spiking.
+</p>
+</div>
+<!-- DUAL-SLOT GRID -->
+<div class="flex flex-wrap items-center justify-between gap-2 bg-white border-[2.5px] border-black rounded-xl p-3 shadow-[3px_3px_0px_#000]">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="font-mono font-black text-xs uppercase tracking-wider">Active Ingest Pipelines</span>
+<span class="bg-[#c2e7ff] border border-black font-mono font-bold text-[10px] px-2 py-0.5 rounded shadow-[1px_1px_0px_#000]">2 Configured</span>
+<span class="bg-[#c8f5d0] border border-black font-mono font-bold text-[10px] px-2 py-0.5 rounded shadow-[1px_1px_0px_#000] flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">queue_music</span> PLAYLIST MODE READY
+</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="neo-btn bg-[#c8f5d0] hover:bg-[#a6f0b3] text-black border-2 border-black font-mono font-black text-xs px-3 py-1.5 rounded-lg shadow-[2px_2px_0px_#000] flex items-center gap-1" onclick="openConfigModal('Slot Baru')">
+<span class="material-symbols-outlined text-base">add_circle</span>
+<span>Tambah Slot</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- ================= SLOT 1: ACTIVE LIVE PASSTHROUGH ================= -->
+<article class="bg-white border-[2.5px] border-black rounded-xl shadow-[6px_6px_0px_#000] flex flex-col justify-between overflow-hidden">
+<!-- Card Header -->
+<div class="p-4 border-b-2 border-black bg-white flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-black"></span>
+<h2 class="font-mono font-black text-sm uppercase">SLOT #01 // YOUTUBE LIVE 24/7</h2>
+</div>
+<span class="bg-[#c8f5d0] text-neutral-900 font-mono font-black text-xs px-2.5 py-1 border-2 border-black rounded-md shadow-[2px_2px_0px_#000] flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-emerald-600 pulse-dot"></span>
+LIVE STREAMING
+</span>
+</div>
+<!-- Card Body / Configuration -->
+<div class="p-4 space-y-3 font-mono text-xs">
+<!-- POINT 4: LIVE SNAPSHOT & STREAM HEALTH BOX -->
+<div class="border-2 border-black rounded-lg p-2.5 bg-[#f8f9fb] shadow-[2px_2px_0px_#000] space-y-2">
+<div class="flex items-center justify-between">
+<span class="text-[10px] font-black uppercase text-neutral-700 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-emerald-700">photo_camera</span>
+LIVE SNAPSHOT (EVERY 30S)
+</span>
+<span class="text-[9px] bg-[#c2e7ff] border border-black font-bold px-1.5 py-0.2 rounded">T-04s AGO</span>
+</div>
+<!-- Simulated Video Stream Thumbnail / Snapshot -->
+<div class="relative w-full h-28 bg-neutral-900 border-2 border-black rounded-md overflow-hidden flex items-center justify-center group">
+<!-- Clean Vector graphic snapshot representation -->
+<div class="absolute inset-0 bg-[#264b5e] flex flex-col justify-between p-2 text-white">
+<div class="flex justify-between items-center text-[10px]">
+<span class="bg-red-600 font-black px-1.5 py-0.5 rounded text-white tracking-widest uppercase">REC • LIVE</span>
+<span class="bg-black/60 font-mono px-1 rounded">1080p60 • CONCAT</span>
+</div>
+<div class="text-center my-auto">
+<p class="font-mono font-black text-sm tracking-wide text-[#c8f5d0]">GO-STREAMER DIRECT FEED</p>
+<p class="text-[9px] text-neutral-300 font-mono">NOW: source_promo_2026.mp4 [ITEM 1/3]</p>
+</div>
+<div class="flex justify-between items-center text-[9px] text-neutral-300">
+<span>OVERLAY: [CLK+TITLE] ACTIVE</span>
+<span class="font-mono text-[#fff0a3]">TIMESTAMP: 14:02:44 WIB</span>
+</div>
+</div>
+<div class="absolute bottom-1 right-1">
+<button class="bg-white hover:bg-neutral-200 text-black border border-black font-mono text-[9px] font-black px-1.5 py-0.5 rounded shadow-[1px_1px_0px_#000]" onclick="alert('Snapshot refreshed from ffmpeg pipe!')">REFRESH</button>
+</div>
+</div>
+<!-- Stream Health Metrics Indicators -->
+<div class="grid grid-cols-3 gap-1.5 text-center text-[10px]">
+<div class="bg-white border border-black p-1 rounded">
+<span class="text-neutral-500 block text-[9px]">PTS SYNC</span>
+<span class="font-black text-emerald-700">0.00ms (EXCELLENT)</span>
+</div>
+<div class="bg-white border border-black p-1 rounded">
+<span class="text-neutral-500 block text-[9px]">KEYFRAME CADENCE</span>
+<span class="font-black text-neutral-900">2.00s GOP (STABLE)</span>
+</div>
+<div class="bg-white border border-black p-1 rounded">
+<span class="text-neutral-500 block text-[9px]">NET LATENCY</span>
+<span class="font-black text-emerald-700">38ms (DIRECT)</span>
+</div>
+</div>
+</div>
+<!-- Source & Configuration Info -->
+<div class="bg-[#f8f9fb] border-2 border-black rounded-lg p-3 space-y-2">
+<div class="flex justify-between items-center border-b border-neutral-300 pb-1.5">
+<span class="text-neutral-500 font-bold uppercase text-[11px]">Source Strategy:</span>
+<span class="bg-[#ffd4e5] border border-black font-black px-1.5 py-0.5 rounded text-[10px]">PLAYLIST MODE (CONCAT 3 FILES)</span>
+</div>
+<!-- POINT 2: Sequential Looping Queue Preview -->
+<div class="bg-white border border-black rounded p-2 text-[10px] space-y-1">
+<div class="flex justify-between items-center font-bold text-neutral-500 border-b border-neutral-200 pb-1">
+<span>CONCAT QUEUE ORDER</span>
+<span class="text-emerald-700 font-black">LOOPING INFINITELY</span>
+</div>
+<div class="flex items-center justify-between text-neutral-900 font-bold">
+<span class="flex items-center gap-1">
+<span class="w-1.5 h-1.5 bg-emerald-600 rounded-full"></span> 1. source_promo_2026.mp4
+</span>
+<span class="text-emerald-600">[PLAYING]</span>
+</div>
+<div class="flex items-center justify-between text-neutral-600">
+<span>2. sponsor_bumper_1080p.mp4</span>
+<span>[NEXT]</span>
+</div>
+<div class="flex items-center justify-between text-neutral-600">
+<span>3. tech_talk_review.mp4</span>
+<span>[QUEUED]</span>
+</div>
+</div>
+<div class="flex justify-between items-center border-b border-neutral-300 pb-1.5">
+<span class="text-neutral-500 font-bold uppercase text-[11px]">Overlay Burn:</span>
+<span class="bg-[#fff0a3] border border-black font-bold px-1.5 py-0.5 rounded text-[10px]">DIGITAL CLOCK + WATERMARK (ON)</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-neutral-500 font-bold uppercase text-[11px]">RTMP Endpoint:</span>
+<span class="text-neutral-700 truncate max-w-[180px]">rtmp://a.rtmp.youtube.com/live2/••••-98x1</span>
+</div>
+</div>
+<!-- Realtime Statistics Box -->
+<div class="grid grid-cols-3 gap-2 bg-[#c8f5d0] border-2 border-black rounded-lg p-2.5 text-center shadow-[2px_2px_0px_#000]">
+<div>
+<span class="text-[10px] font-extrabold text-neutral-700 uppercase block">FPS</span>
+<span class="font-black text-sm text-black">30.0</span>
+</div>
+<div>
+<span class="text-[10px] font-extrabold text-neutral-700 uppercase block">BITRATE</span>
+<span class="font-black text-sm text-black">2,480k</span>
+</div>
+<div>
+<span class="text-[10px] font-extrabold text-neutral-700 uppercase block">FRAME</span>
+<span class="font-black text-sm text-black">724,050</span>
+</div>
+</div>
+</div>
+<!-- Card Actions Footer -->
+<div class="p-3 bg-[#daf0fc] border-t-2 border-black flex items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<button class="neo-btn bg-[#ffd5cc] hover:bg-[#ffb4a6] text-black border-2 border-black font-mono font-black text-xs px-3 py-2 rounded-lg shadow-[3px_3px_0px_#000] flex items-center gap-1.5" onclick="alert('Stream #01 dihentikan')">
+<span class="material-symbols-outlined" style="font-size: 15px;">stop_circle</span>
+Hentikan Stream
+</button>
+<button class="neo-btn bg-white hover:bg-neutral-100 text-black border-2 border-black font-mono font-bold text-xs p-2 rounded-lg shadow-[2px_2px_0px_#000]" onclick="alert('Stream di-restart (Timestamp reset)')" title="Restart Ingest">
+<span class="material-symbols-outlined" style="font-size: 16px;">replay</span>
+</button>
+</div>
+<button class="neo-btn bg-white hover:bg-neutral-100 text-black border-2 border-black font-mono font-bold text-xs px-3 py-2 rounded-lg shadow-[2px_2px_0px_#000] flex items-center gap-1" onclick="openConfigModal('Slot 1 (YouTube Live)')">
+<span class="material-symbols-outlined" style="font-size: 15px;">tune</span>
+Config
+</button>
+</div>
+</article>
+<!-- ================= SLOT 2: STANDBY / INACTIVE ================= -->
+<article class="bg-white border-[2.5px] border-black rounded-xl shadow-[6px_6px_0px_#000] flex flex-col justify-between overflow-hidden">
+<!-- Card Header -->
+<div class="p-4 border-b-2 border-black bg-white flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-neutral-400"></span>
+<h2 class="font-mono font-black text-sm uppercase">SLOT #02 // TWITCH / FB BACKUP</h2>
+</div>
+<span class="bg-neutral-100 text-neutral-600 font-mono font-black text-xs px-2.5 py-1 border-2 border-black rounded-md shadow-[2px_2px_0px_#000]">
+IDLE / OFF
+</span>
+</div>
+<!-- Card Body / Dormant Pipeline -->
+<div class="p-4 space-y-3 font-mono text-xs">
+<div class="bg-[#f8f9fb] border-2 border-black rounded-lg p-3 space-y-2">
+<div class="flex justify-between items-center border-b border-neutral-300 pb-1.5">
+<span class="text-neutral-500 font-bold uppercase text-[11px]">Assigned Source:</span>
+<span class="font-extrabold text-neutral-700 truncate max-w-[190px]">Single File Loop (stream_backup_lofi.mp4)</span>
+</div>
+<div class="flex justify-between items-center border-b border-neutral-300 pb-1.5">
+<span class="text-neutral-500 font-bold uppercase text-[11px]">Stream Overlay:</span>
+<span class="text-neutral-500 font-bold">DISABLED (Zero Transcode)</span>
+</div>
+<div class="flex justify-between items-center border-b border-neutral-300 pb-1.5">
+<span class="text-neutral-500 font-bold uppercase text-[11px]">Hardware Profile:</span>
+<span class="bg-[#fff0a3] border border-black font-extrabold px-1.5 py-0.5 rounded text-[11px]">libx264 Ultrafast / Zero</span>
+</div>
+<div class="flex justify-between items-center border-b border-neutral-300 pb-1.5">
+<span class="text-neutral-500 font-bold uppercase text-[11px]">Worker Status:</span>
+<span class="text-neutral-700 font-bold">PID: None (Dormant Daemon)</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-neutral-500 font-bold uppercase text-[11px]">Destination:</span>
+<span class="text-neutral-700 truncate max-w-[180px]">rtmp://live.twitch.tv/app/••••-71a2</span>
+</div>
+</div>
+<!-- Dormant Notice Banner -->
+<div class="bg-[#e2daf9] border-2 border-black rounded-lg p-3 text-center shadow-[2px_2px_0px_#000]">
+<p class="font-mono font-extrabold text-neutral-900 text-xs">PIPELINE READY TO DEPLOY</p>
+<p class="text-[11px] font-sans text-neutral-700 mt-0.5 font-medium">Click "Mulai Stream" to spawn supervisor ffmpeg worker on ARM64 core with Concat fallback.</p>
+</div>
+<div class="p-2.5 bg-white border-2 border-black rounded-lg text-[11px]">
+<div class="flex justify-between items-center font-bold">
+<span>Quick Playlist Switch:</span>
+<button class="bg-[#c2e7ff] border border-black px-2 py-0.5 rounded font-black text-[10px] shadow-[1px_1px_0px_#000]" onclick="openConfigModal('Slot 2 (Playlist Concat)')">Switch to Concat Queue</button>
+</div>
+</div>
+</div>
+<!-- Card Actions Footer -->
+<div class="p-3 bg-[#daf0fc] border-t-2 border-black flex items-center justify-between gap-2">
+<button class="neo-btn bg-[#c8f5d0] hover:bg-[#a6f0b3] text-black border-2 border-black font-mono font-black text-xs px-4 py-2 rounded-lg shadow-[3px_3px_0px_#000] flex items-center gap-1.5" onclick="alert('Menjalankan Stream Slot #02...')">
+<span class="material-symbols-outlined" style="font-size: 16px;">play_arrow</span>
+Mulai Stream
+</button>
+<button class="neo-btn bg-white hover:bg-neutral-100 text-black border-2 border-black font-mono font-bold text-xs px-3 py-2 rounded-lg shadow-[2px_2px_0px_#000] flex items-center gap-1" onclick="openConfigModal('Slot 2 (Twitch/FB)')">
+<span class="material-symbols-outlined" style="font-size: 15px;">tune</span>
+Config
+</button>
+</div>
+</article>
+</div>
+</div>
+<!-- TAB 2 CONTENT: VIDEO ASSETS & CODEC TOOLS (POINT 4) -->
+<div class="hidden space-y-4" id="tab-assets">
+<div class="bg-white border-[2.5px] border-black rounded-xl p-4 shadow-[5px_5px_0px_#000]">
+<div class="flex flex-wrap items-center justify-between pb-3 mb-3 border-b-2 border-black gap-2">
+<div>
+<h2 class="text-base font-black uppercase font-mono">Video Library &amp; Codec Optimizer</h2>
+<p class="text-xs text-neutral-600 font-medium">Verify media compliance for zero-transcode RTMP copying (-c:v copy -c:a copy).</p>
+</div>
+<div class="flex items-center gap-2">
+<button class="neo-btn bg-[#c2e7ff] border-2 border-black font-mono font-bold text-xs px-3 py-1.5 rounded-lg shadow-[2px_2px_0px_#000] flex items-center gap-1" onclick="alert('Scanning storage for broken PTS / non-compliant codecs...')">
+<span class="material-symbols-outlined text-sm">troubleshoot</span> Scan All Files
+</button>
+<button class="neo-btn bg-[#c8f5d0] border-2 border-black font-mono font-bold text-xs px-3 py-1.5 rounded-lg shadow-[2px_2px_0px_#000] flex items-center gap-1" onclick="alert('Buka dialog unggah video...')">
+<span class="material-symbols-outlined" style="font-size: 16px;">upload_file</span>
+Unggah Video
+</button>
+</div>
+</div>
+<!-- Offline Fixer Banner -->
+<div class="bg-[#e2daf9] border-2 border-black rounded-lg p-3 mb-4 flex flex-wrap items-center justify-between gap-2 shadow-[2px_2px_0px_#000]">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined bg-white border border-black p-1 rounded">build_circle</span>
+<div class="text-xs font-mono">
+<p class="font-extrabold uppercase">Offline Codec Fixer &amp; CFR Stabilizer</p>
+<p class="text-neutral-700 text-[11px]">Convert non-compliant MKV / HEVC / Opus files in background to H.264 High 4.1 + AAC CFR with uniform 2.0s GOP.</p>
+</div>
+</div>
+<span class="bg-white border border-black px-2 py-1 rounded text-[10px] font-mono font-bold shadow-[1px_1px_0px_#000]">ZERO RTMP LAG</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left font-mono text-xs border-collapse">
+<thead>
+<tr class="bg-[#daf0fc] border-2 border-black">
+<th class="p-2.5 border-r-2 border-black font-black uppercase">File Name</th>
+<th class="p-2.5 border-r-2 border-black font-black uppercase">Resolution</th>
+<th class="p-2.5 border-r-2 border-black font-black uppercase">Codec Profile</th>
+<th class="p-2.5 border-r-2 border-black font-black uppercase">File Size</th>
+<th class="p-2.5 border-r-2 border-black font-black uppercase">Status</th>
+<th class="p-2.5 font-black uppercase text-center">Action / Tool</th>
+</tr>
+</thead>
+<tbody class="divide-y-2 divide-black border-2 border-black bg-white">
+<tr>
+<td class="p-2.5 border-r-2 border-black font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-neutral-700">movie</span>
+source_promo_2026.mp4
+</td>
+<td class="p-2.5 border-r-2 border-black font-bold">1920x1080 (30fps CFR)</td>
+<td class="p-2.5 border-r-2 border-black">
+<span class="bg-[#c8f5d0] border border-black px-1.5 py-0.5 rounded font-bold">H264 / AAC (2s GOP)</span>
+</td>
+<td class="p-2.5 border-r-2 border-black">1.42 GB</td>
+<td class="p-2.5 border-r-2 border-black text-emerald-700 font-extrabold">Passthrough OK</td>
+<td class="p-2.5 text-center">
+<button class="neo-btn bg-[#c2e7ff] border border-black px-2.5 py-1 rounded font-bold shadow-[1px_1px_0px_#000]" onclick="alert('Asset ditambahkan ke antrean Concat Playlist!')">Assign Playlist</button>
+</td>
+</tr>
+<tr>
+<td class="p-2.5 border-r-2 border-black font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-neutral-700">movie</span>
+stream_backup_lofi.mp4
+</td>
+<td class="p-2.5 border-r-2 border-black font-bold">1280x720 (30fps CFR)</td>
+<td class="p-2.5 border-r-2 border-black">
+<span class="bg-[#c8f5d0] border border-black px-1.5 py-0.5 rounded font-bold">H264 / AAC (2s GOP)</span>
+</td>
+<td class="p-2.5 border-r-2 border-black">820 MB</td>
+<td class="p-2.5 border-r-2 border-black text-emerald-700 font-extrabold">Passthrough OK</td>
+<td class="p-2.5 text-center">
+<button class="neo-btn bg-[#c2e7ff] border border-black px-2.5 py-1 rounded font-bold shadow-[1px_1px_0px_#000]" onclick="alert('Asset ditambahkan ke antrean!')">Assign Playlist</button>
+</td>
+</tr>
+<tr class="bg-[#fff9f7]">
+<td class="p-2.5 border-r-2 border-black font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-amber-700">warning</span>
+podcast_replay_ep14.mkv
+</td>
+<td class="p-2.5 border-r-2 border-black font-bold">1920x1080 (60fps VFR)</td>
+<td class="p-2.5 border-r-2 border-black">
+<span class="bg-[#ffd5cc] border border-black px-1.5 py-0.5 rounded font-bold text-red-700">HEVC / Opus (Non-Compliant)</span>
+</td>
+<td class="p-2.5 border-r-2 border-black">3.10 GB</td>
+<td class="p-2.5 border-r-2 border-black text-red-600 font-extrabold">Needs Re-encode</td>
+<td class="p-2.5 text-center">
+<button class="neo-btn bg-[#ffd4e5] hover:bg-[#ffb6d3] text-black border border-black px-2.5 py-1 rounded font-black shadow-[2px_2px_0px_#000] flex items-center justify-center gap-1 mx-auto" onclick="runOfflineFixer('podcast_replay_ep14.mkv')">
+<span class="material-symbols-outlined text-sm">auto_fix_high</span>
+Optimize for Passthrough
+</button>
+</td>
+</tr>
+<tr>
+<td class="p-2.5 border-r-2 border-black font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-neutral-700">movie</span>
+sponsor_bumper_1080p.mp4
+</td>
+<td class="p-2.5 border-r-2 border-black font-bold">1920x1080 (30fps CFR)</td>
+<td class="p-2.5 border-r-2 border-black">
+<span class="bg-[#c8f5d0] border border-black px-1.5 py-0.5 rounded font-bold">H264 / AAC (2s GOP)</span>
+</td>
+<td class="p-2.5 border-r-2 border-black">45 MB</td>
+<td class="p-2.5 border-r-2 border-black text-emerald-700 font-extrabold">Passthrough OK</td>
+<td class="p-2.5 text-center">
+<button class="neo-btn bg-[#c2e7ff] border border-black px-2.5 py-1 rounded font-bold shadow-[1px_1px_0px_#000]">Assign Playlist</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- TAB 3 CONTENT: SCHEDULES & AUTO-OVERLAP GUARD (POINT 2) -->
+<div class="hidden space-y-4" id="tab-storage">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Auto-Schedule Overlap Guard Module -->
+<div class="bg-white border-[2.5px] border-black rounded-xl p-4 shadow-[5px_5px_0px_#000] space-y-3">
+<div class="flex items-center justify-between border-b-2 border-black pb-2">
+<h3 class="font-mono font-black text-sm uppercase flex items-center gap-2">
+<span class="material-symbols-outlined text-black">security</span>
+Auto-Schedule Overlap Guard
+</h3>
+<span class="bg-[#c8f5d0] border border-black px-2 py-0.5 rounded font-mono text-[10px] font-black shadow-[1px_1px_0px_#000]">
+GUARD ARMED
+</span>
+</div>
+<p class="text-xs text-neutral-600 font-mono leading-relaxed">
+Prevents two conflicting cron jobs from attempting to bind to the same RTMP port or GPU hardware encoder instance simultaneously.
+</p>
+<div class="space-y-2 font-mono text-xs">
+<div class="p-2.5 bg-[#f8f9fb] border-2 border-black rounded-lg flex items-center justify-between">
+<div>
+<p class="font-bold text-neutral-900">Conflict Detection Algorithm</p>
+<p class="text-[10px] text-neutral-500">Scan buffer gap before pipeline spawn</p>
+</div>
+<span class="bg-[#c2e7ff] border border-black px-1.5 py-0.5 rounded text-[10px] font-extrabold">5-MIN GRACE</span>
+</div>
+<div class="p-2.5 bg-[#f8f9fb] border-2 border-black rounded-lg flex items-center justify-between">
+<div>
+<p class="font-bold text-neutral-900">Priority Override Rule</p>
+<p class="text-[10px] text-neutral-500">When clash detected between Slot #1 &amp; Slot #2</p>
+</div>
+<select class="bg-white border border-black rounded text-[11px] font-bold p-1">
+<option>Yield to Highest Priority (Slot 1)</option>
+<option>Terminate Preceding Stream Gracefully</option>
+<option>Deny New Ingest Until Slot Clears</option>
+</select>
+</div>
+<div class="p-2.5 bg-[#ffd4e5] border-2 border-black rounded-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-red-600">verified_user</span>
+<div class="text-[11px]">
+<p class="font-black text-black">NO TIME OVERLAPS DETECTED</p>
+<p class="text-neutral-700">Next planned slot starts in 15h 58m (Slot 2 Backup Routine).</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Cron Job Automations -->
+<div class="bg-white border-[2.5px] border-black rounded-xl p-4 shadow-[5px_5px_0px_#000]">
+<div class="flex items-center justify-between border-b-2 border-black pb-2 mb-3">
+<h3 class="font-mono font-black text-sm uppercase flex items-center gap-2">
+<span class="material-symbols-outlined">schedule</span>
+Cron Job Automations &amp; Storage
+</h3>
+<button class="neo-btn bg-[#c8f5d0] border border-black px-2 py-0.5 rounded font-mono text-[10px] font-black shadow-[1px_1px_0px_#000]" onclick="alert('Tambah task jadwal baru!')">+ New Task</button>
+</div>
+<div class="space-y-2 font-mono text-xs">
+<div class="p-2.5 bg-[#f8f9fb] border-2 border-black rounded-lg flex justify-between items-center">
+<div>
+<p class="font-black">Daily Stream Re-align &amp; PTS Flush</p>
+<p class="text-[10px] text-neutral-600">06:00 WIB • Resync audio timestamps (Priority: High)</p>
+</div>
+<span class="bg-[#c8f5d0] border border-black font-bold px-1.5 py-0.5 rounded text-[10px]">ACTIVE</span>
+</div>
+<div class="p-2.5 bg-[#f8f9fb] border-2 border-black rounded-lg flex justify-between items-center">
+<div>
+<p class="font-black">Clear Log Buffer Cache</p>
+<p class="text-[10px] text-neutral-600">Every 48 Hours • Truncate stderr.pipe &gt; 50MB</p>
+</div>
+<span class="bg-[#c8f5d0] border border-black font-bold px-1.5 py-0.5 rounded text-[10px]">ACTIVE</span>
+</div>
+<div class="p-2.5 bg-[#f8f9fb] border-2 border-black rounded-lg flex justify-between items-center">
+<div>
+<p class="font-black">Auto Backup Concat Playlist</p>
+<p class="text-[10px] text-neutral-600">Every Sunday 00:00 • Sync playlist.txt</p>
+</div>
+<span class="bg-[#c2e7ff] border border-black font-bold px-1.5 py-0.5 rounded text-[10px]">STANDBY</span>
+</div>
+</div>
+<!-- Partition status -->
+<div class="mt-4 pt-3 border-t-2 border-black font-mono text-xs">
+<div class="flex justify-between font-bold mb-1">
+<span>/data Flash Partition:</span>
+<span>38.2 GB Free / 128 GB</span>
+</div>
+<div class="w-full h-3.5 bg-neutral-200 border-2 border-black rounded flex overflow-hidden">
+<div class="bg-[#c8f5d0] w-[70%]" title="Used Data"></div>
+<div class="bg-[#ffd5cc] w-[5%]" title="System"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- TAB 4 CONTENT: REMOTE ACCESS & ALERTS (POINT 3) -->
+<div class="hidden space-y-4" id="tab-remote">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+<!-- REMOTE ACCESS & TUNNELING -->
+<div class="lg:col-span-7 bg-white border-[2.5px] border-black rounded-xl p-4 md:p-5 shadow-[5px_5px_0px_#000] space-y-4">
+<div class="border-b-2 border-black pb-2 flex items-center justify-between flex-wrap gap-2">
+<div>
+<h3 class="font-mono font-black text-base uppercase flex items-center gap-2">
+<span class="material-symbols-outlined text-black">cloud</span>
+Remote Access &amp; Tunneling
+</h3>
+<p class="text-xs text-neutral-600 font-mono">Access your Go-Streamer UI from anywhere securely.</p>
+</div>
+<span class="bg-[#c8f5d0] border-2 border-black px-2 py-0.5 rounded font-mono text-xs font-black shadow-[2px_2px_0px_#000] flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-emerald-600 pulse-dot"></span> TUNNEL ONLINE
+</span>
+</div>
+<!-- Tunnel Providers -->
+<div class="space-y-3 font-mono text-xs">
+<!-- Cloudflare Tunnel -->
+<div class="p-3 bg-[#f8f9fb] border-2 border-black rounded-xl space-y-2 shadow-[2px_2px_0px_#000]">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="bg-[#fff0a3] border border-black font-black text-[10px] px-1.5 py-0.5 rounded">QUICK TUNNEL</span>
+<span class="font-extrabold text-sm text-neutral-900">Cloudflare (`cloudflared`)</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-neutral-300 peer-focus:outline-none border-2 border-black rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-black after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-2 after:border-black after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#c8f5d0]"></div>
+</label>
+</div>
+<p class="text-[11px] text-neutral-600">Zero-config public HTTPS URL routing through Cloudflare edge network.</p>
+<!-- Public URL Pill & Actions -->
+<div class="bg-white border-2 border-black p-2 rounded-lg flex items-center justify-between gap-2">
+<div class="truncate flex items-center gap-1.5">
+<span class="material-symbols-outlined text-emerald-700 text-sm">lock</span>
+<span class="font-mono font-bold text-[11px] text-neutral-800 select-all" id="tunnel-url">https://gostream-node-alpha.trycloudflare.com</span>
+</div>
+<button class="neo-btn bg-[#c2e7ff] hover:bg-[#a6d9fc] border border-black font-mono font-black text-[10px] px-2.5 py-1 rounded shadow-[1px_1px_0px_#000] shrink-0" onclick="copyTunnelUrl()">
+COPY URL
+</button>
+</div>
+</div>
+<!-- Tailscale Provider -->
+<div class="p-3 bg-[#f8f9fb] border-2 border-black rounded-xl space-y-2 shadow-[2px_2px_0px_#000]">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="bg-[#c2e7ff] border border-black font-black text-[10px] px-1.5 py-0.5 rounded">VPN MESH</span>
+<span class="font-extrabold text-sm text-neutral-900">Tailscale Daemon</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-neutral-300 peer-focus:outline-none border-2 border-black rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-black after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-2 after:border-black after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#c8f5d0]"></div>
+</label>
+</div>
+<div class="flex items-center justify-between text-[11px]">
+<span class="text-neutral-600">Tailscale IP: <strong class="text-black">100.84.19.42</strong></span>
+<span class="bg-[#c8f5d0] border border-black px-1.5 py-0.2 rounded font-bold text-[10px]">CONNECTED</span>
+</div>
+</div>
+<!-- QR Code quick scan simulation -->
+<div class="p-3 bg-[#daf0fc] border-2 border-black rounded-xl flex items-center gap-3">
+<!-- Neobrutalist QR Box -->
+<div class="w-16 h-16 bg-white border-2 border-black rounded-lg p-1 shrink-0 flex flex-col justify-between shadow-[2px_2px_0px_#000]">
+<div class="flex justify-between">
+<div class="w-4 h-4 bg-black border border-white"></div>
+<div class="w-4 h-4 bg-black border border-white"></div>
+</div>
+<div class="text-center font-mono font-black text-[7px] leading-tight">SCAN MOBILE</div>
+<div class="flex justify-between">
+<div class="w-4 h-4 bg-black border border-white"></div>
+<div class="w-2 h-2 bg-black self-end"></div>
+</div>
+</div>
+<div class="text-[11px] font-mono leading-tight">
+<p class="font-black text-black uppercase">Direct Mobile Management</p>
+<p class="text-neutral-700 mt-0.5">Scan from iPhone / Android browser to access this dashboard without port-forwarding.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- WEBHOOKS & BOT ALERTS -->
+<div class="lg:col-span-5 bg-white border-[2.5px] border-black rounded-xl p-4 md:p-5 shadow-[5px_5px_0px_#000] space-y-4">
+<div class="border-b-2 border-black pb-2 flex items-center justify-between">
+<h3 class="font-mono font-black text-base uppercase flex items-center gap-2">
+<span class="material-symbols-outlined text-black">notifications_active</span>
+Webhooks &amp; Bot Alerts
+</h3>
+<span class="bg-[#fff0a3] border border-black px-1.5 py-0.5 rounded font-mono text-[10px] font-bold">DISCORD / TELEGRAM</span>
+</div>
+<div class="space-y-3 font-mono text-xs">
+<div>
+<label class="block font-bold text-neutral-800 uppercase mb-1">Webhook URL (Discord / Slack):</label>
+<input class="w-full border-2 border-black rounded-lg p-2 font-mono text-xs focus:ring-0 shadow-[2px_2px_0px_#000]" type="text" value="https://discord.com/api/webhooks/12984••••/••••"/>
+</div>
+<div>
+<label class="block font-bold text-neutral-800 uppercase mb-1">Telegram Bot Token &amp; Chat ID:</label>
+<input class="w-full border-2 border-black rounded-lg p-2 font-mono text-xs focus:ring-0 shadow-[2px_2px_0px_#000]" type="text" value="bot68192019:AAFe••• / chat_id: -10029381"/>
+</div>
+<!-- Alert Trigger Toggles -->
+<div class="space-y-2 pt-1 border-t border-neutral-200">
+<p class="font-extrabold uppercase text-[10px] text-neutral-600">Active Alert Triggers</p>
+<div class="flex items-center justify-between bg-[#f8f9fb] border border-black p-2 rounded">
+<span class="font-bold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm text-red-600">crisis_alert</span> Stream Crash / Auto Restart
+</span>
+<input checked="" class="rounded border-black text-black focus:ring-0 w-4 h-4" type="checkbox"/>
+</div>
+<div class="flex items-center justify-between bg-[#f8f9fb] border border-black p-2 rounded">
+<span class="font-bold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm text-amber-600">thermostat</span> SoC Overheat (&gt; 48°C)
+</span>
+<input checked="" class="rounded border-black text-black focus:ring-0 w-4 h-4" type="checkbox"/>
+</div>
+<div class="flex items-center justify-between bg-[#f8f9fb] border border-black p-2 rounded">
+<span class="font-bold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm text-neutral-700">disc_full</span> Low Storage (&lt; 5 GB)
+</span>
+<input checked="" class="rounded border-black text-black focus:ring-0 w-4 h-4" type="checkbox"/>
+</div>
+</div>
+<!-- Send Test Alert Button -->
+<div class="pt-2">
+<button class="neo-btn w-full bg-[#ffd4e5] hover:bg-[#ffb6d3] text-black border-2 border-black font-mono font-black text-xs py-2.5 rounded-lg shadow-[3px_3px_0px_#000] flex items-center justify-center gap-2" onclick="sendTestAlert()">
+<span class="material-symbols-outlined text-sm">send</span>
+Send Test Alert to Telegram &amp; Discord
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- TAB 5 CONTENT: RETRO TERMINAL LOG CONSOLE -->
+<div class="hidden space-y-3" id="tab-logs">
+<div class="bg-white border-[2.5px] border-black rounded-xl p-4 shadow-[5px_5px_0px_#000]">
+<!-- Header Console Controls -->
+<div class="flex flex-wrap items-center justify-between pb-2 mb-2 border-b-2 border-black gap-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-black">terminal</span>
+<span class="font-mono font-extrabold text-xs uppercase">FFMPEG SUPERVISOR STDERR STREAM (/proc/4192/fd/2)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="bg-[#c8f5d0] border border-black px-2 py-0.5 rounded font-mono text-[10px] font-bold shadow-[1px_1px_0px_#000]">
+AUTO-SCROLL: ON
+</span>
+<button class="neo-btn bg-white hover:bg-neutral-100 border border-black px-2 py-0.5 rounded font-mono text-[10px] font-bold shadow-[1px_1px_0px_#000]" onclick="clearConsole()">
+CLEAR
+</button>
+</div>
+</div>
+<!-- The Retro Terminal Box (Crisp high-contrast black neobrutal box) -->
+<div class="bg-[#111827] border-[2px] border-black rounded-lg p-3.5 font-mono text-xs text-neutral-200 space-y-1.5 overflow-x-auto max-h-72 leading-relaxed" id="console-box">
+<div class="">
+<span class="bg-[#c8f5d0] text-black font-extrabold px-1 rounded text-[10px]">[SYS]</span>
+<span class="text-neutral-400">[2026-03-30 08:00:01]</span> Ingest node spawned PGID:4192, worker uid=0, renice -10
+</div>
+<div class="">
+<span class="bg-[#c2e7ff] text-black font-extrabold px-1 rounded text-[10px]">[CONCAT]</span>
+<span class="text-neutral-400">[2026-03-30 08:00:02]</span> Loaded playlist /storage/emulated/0/stream_pool/playlist.txt [3 files, auto-loop: enabled]
+</div>
+<div class="pl-4 text-neutral-300">
+Stream #0:0: Video: h264 (High) (avc1), yuv420p, 1920x1080 [SAR 1:1], 2400 kb/s, 30 fps
+</div>
+<div class="pl-4 text-neutral-300">
+Stream #0:1: Audio: aac (LC), 48000 Hz, stereo, fltp, 128 kb/s
+</div>
+<div class="">
+<span class="bg-[#e2daf9] text-black font-extrabold px-1 rounded text-[10px]">[OVERLAY]</span>
+<span class="text-neutral-400">[2026-03-30 08:00:02]</span> Dynamic clock filter bound: %{localtime\:%H\:%M\:%S} (alpha: 0.85)
+</div>
+<div class="">
+<span class="bg-[#ffd5cc] text-black font-extrabold px-1 rounded text-[10px]">[RTMP]</span>
+<span class="text-neutral-400">[2026-03-30 08:00:03]</span> Handshake established with rtmp://a.rtmp.youtube.com/live2
+</div>
+<div>
+<span class="bg-[#fff0a3] text-black font-extrabold px-1 rounded text-[10px]">[RUN]</span>
+<span class="text-emerald-400">frame= 724050 fps=30.0 q=-1.0 size=234812kB time=06:42:15 bitrate=2480.2kbits/s speed=1.00x</span>
+</div>
+<div class="flex items-center gap-1.5 pt-1 text-white">
+<span class="text-[#c8f5d0] font-bold">root@android:~/go-streamer#</span>
+<span class="text-neutral-400">tail -f stderr.pipe</span>
+<span class="w-2 h-4 bg-[#c8f5d0] inline-block pulse-dot"></span>
+</div>
+</div>
+</div>
+</div>
+<!-- TAB 6 CONTENT: SYSTEM & MAGISK SETTINGS -->
+<div class="hidden space-y-4" id="tab-system">
+<div class="bg-white border-[2.5px] border-black rounded-xl p-4 shadow-[5px_5px_0px_#000]">
+<h2 class="text-base font-black uppercase font-mono mb-3">Magisk Root &amp; Kernel Execution Flags</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-xs">
+<div class="p-3 bg-[#f8f9fb] border-2 border-black rounded-lg">
+<span class="font-bold text-neutral-500 uppercase text-[10px] block">OOM Priority Flag</span>
+<span class="font-extrabold text-sm text-neutral-900 block mt-0.5">oom_score_adj = -1000</span>
+<p class="text-[11px] text-neutral-600 mt-1">Android LMK (Low Memory Killer) will never terminate ffmpeg or supervisor process.</p>
+</div>
+<div class="p-3 bg-[#f8f9fb] border-2 border-black rounded-lg">
+<span class="font-bold text-neutral-500 uppercase text-[10px] block">Power Management</span>
+<span class="font-extrabold text-sm text-neutral-900 block mt-0.5">WakeLock [PARTIAL_WAKE_LOCK]</span>
+<p class="text-[11px] text-neutral-600 mt-1">Locks CPU frequency to prevent deep sleep while device screen is powered down.</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- CONFIGURATION MODAL DIALOG (POINT 2 & ENHANCED OPTIONS) -->
+<div class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4" id="config-modal">
+<div class="bg-white border-[3px] border-black rounded-xl p-5 shadow-[8px_8px_0px_#000] w-full max-w-xl space-y-4 max-h-[90vh] overflow-y-auto">
+<div class="flex items-center justify-between border-b-2 border-black pb-2">
+<h3 class="font-mono font-black text-base uppercase" id="modal-title">Configure Stream Slot</h3>
+<button class="neo-btn bg-[#ffd5cc] border-2 border-black rounded p-1 font-mono font-black" onclick="closeConfigModal()">✕</button>
+</div>
+<div class="space-y-3 font-mono text-xs">
+<!-- POINT 2: Stream Source Mode Selector -->
+<div>
+<label class="block font-bold text-neutral-700 uppercase mb-1">Stream Content Mode:</label>
+<div class="grid grid-cols-2 gap-2">
+<label class="border-2 border-black rounded-lg p-2 flex items-center gap-2 cursor-pointer bg-[#c8f5d0]">
+<input checked="" class="text-black focus:ring-0" name="content-mode" type="radio"/>
+<span class="font-black text-[11px]">Playlist (Concat Looping)</span>
+</label>
+<label class="border-2 border-black rounded-lg p-2 flex items-center gap-2 cursor-pointer bg-white">
+<input class="text-black focus:ring-0" name="content-mode" type="radio"/>
+<span class="font-bold text-[11px]">Single Video Loop (-stream_loop)</span>
+</label>
+</div>
+</div>
+<!-- Concat Playlist Selector -->
+<div class="p-3 bg-[#f8f9fb] border-2 border-black rounded-lg space-y-2">
+<div class="flex items-center justify-between">
+<label class="font-bold text-neutral-800 uppercase text-[11px]">Active Concat Playlist:</label>
+<button class="text-[10px] bg-white border border-black px-1.5 py-0.5 rounded font-black shadow-[1px_1px_0px_#000]" onclick="alert('Edit urutan file txt dibuka...')">+ Manage Queue</button>
+</div>
+<div class="space-y-1 bg-white border border-black p-2 rounded text-[11px]">
+<p class="font-bold text-neutral-900">1. source_promo_2026.mp4 (02:14)</p>
+<p class="font-medium text-neutral-600">2. sponsor_bumper_1080p.mp4 (00:30)</p>
+<p class="font-medium text-neutral-600">3. tech_talk_review.mp4 (14:10)</p>
+</div>
+<p class="text-[10px] text-neutral-500">Files seamlessly stitched with zero re-encode using ffmpeg concat demuxer.</p>
+</div>
+<!-- POINT 2: Dynamic Stream Overlay Toggle -->
+<div class="p-3 bg-[#fff0a3] border-2 border-black rounded-lg space-y-2 shadow-[2px_2px_0px_#000]">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm">subtitles</span>
+<label class="font-black text-neutral-900 uppercase text-[11px]">Dynamic Stream Overlay</label>
+</div>
+<input checked="" class="rounded border-black text-black focus:ring-0 w-4 h-4" id="overlay-toggle" type="checkbox"/>
+</div>
+<div class="grid grid-cols-2 gap-2 text-[10px]">
+<div>
+<span class="text-neutral-600 block">Overlay Type:</span>
+<select class="w-full bg-white border border-black rounded p-1 text-[11px] font-bold">
+<option>Digital Clock + Live Watermark</option>
+<option>Custom Title Banner Text</option>
+<option>Live Uptime &amp; Date Clock</option>
+</select>
+</div>
+<div>
+<span class="text-neutral-600 block">Encoding Overhead:</span>
+<span class="font-bold text-neutral-900 block mt-1">+1.8% CPU (Lightweight Filter)</span>
+</div>
+</div>
+</div>
+<div>
+<label class="block font-bold text-neutral-700 uppercase mb-1">RTMP Server Endpoint:</label>
+<input class="w-full border-2 border-black rounded-lg p-2 font-mono text-xs focus:ring-0 shadow-[2px_2px_0px_#000]" type="text" value="rtmp://a.rtmp.youtube.com/live2"/>
+</div>
+<div>
+<label class="block font-bold text-neutral-700 uppercase mb-1">Stream Key:</label>
+<input class="w-full border-2 border-black rounded-lg p-2 font-mono text-xs focus:ring-0 shadow-[2px_2px_0px_#000]" type="password" value="xxxx-xxxx-xxxx-xxxx"/>
+</div>
+<div>
+<label class="block font-bold text-neutral-700 uppercase mb-1">Encoding Mode:</label>
+<select class="w-full border-2 border-black rounded-lg p-2 font-mono text-xs focus:ring-0 shadow-[2px_2px_0px_#000]">
+<option>Passthrough (-c:v copy -c:a copy)</option>
+<option>Transcode with Overlay (-c:v libx264 -preset ultrafast)</option>
+<option>Transcode to 720p 30fps</option>
+</select>
+</div>
+</div>
+<div class="flex justify-end gap-2 border-t-2 border-black pt-3">
+<button class="neo-btn bg-neutral-100 hover:bg-neutral-200 border-2 border-black font-mono font-bold text-xs px-3 py-2 rounded-lg shadow-[2px_2px_0px_#000]" onclick="closeConfigModal()">
+Batal
+</button>
+<button class="neo-btn bg-[#c8f5d0] hover:bg-[#a6f0b3] border-2 border-black font-mono font-black text-xs px-4 py-2 rounded-lg shadow-[3px_3px_0px_#000]" onclick="closeConfigModal(); alert('Konfigurasi dan Playlist berhasil disimpan!')">
+Simpan Konfigurasi
+</button>
+</div>
+</div>
+</div>
+<!-- INTERACTIVE APPLICATION SCRIPT -->
+<script>
+    function switchTab(tabId) {
+      // Hide all tabs
+      const tabs = ['slots', 'assets', 'storage', 'remote', 'logs', 'system'];
+      tabs.forEach(id => {
+        const el = document.getElementById('tab-' + id);
+        const nav = document.getElementById('nav-' + id);
+        if (el) el.classList.add('hidden');
+        if (nav) {
+          nav.classList.remove('bg-white', 'shadow-[3px_3px_0px_#000]');
+          nav.classList.add('bg-[#f3fbf5]', 'shadow-[2px_2px_0px_#000]');
+        }
+      });
+
+      // Show selected tab
+      const targetEl = document.getElementById('tab-' + tabId);
+      const targetNav = document.getElementById('nav-' + tabId);
+      if (targetEl) targetEl.classList.remove('hidden');
+      if (targetNav) {
+        targetNav.classList.remove('bg-[#f3fbf5]', 'shadow-[2px_2px_0px_#000]');
+        targetNav.classList.add('bg-white', 'shadow-[3px_3px_0px_#000]');
+      }
+    }
+
+    function openConfigModal(name) {
+      document.getElementById('modal-title').innerText = 'Settings // ' + name;
+      document.getElementById('config-modal').classList.remove('hidden');
+    }
+
+    function closeConfigModal() {
+      document.getElementById('config-modal').classList.add('hidden');
+    }
+
+    function triggerKillSwitch() {
+      if (confirm("PERINGATAN: Matikan seluruh supervisor worker dan ffmpeg instance sekarang?")) {
+        alert("Supervisor daemon SIGKILL dikirimkan. Stream berhenti.");
+      }
+    }
+
+    function clearConsole() {
+      const box = document.getElementById('console-box');
+      box.innerHTML = '<div class="text-neutral-400">--- Terminal buffer cleared ---</div>';
+    }
+
+    function refreshMetrics() {
+      const cpu = document.getElementById('metric-cpu');
+      const val = (10 + Math.random() * 4).toFixed(1);
+      cpu.innerText = val + '%';
+    }
+
+    function copyTunnelUrl() {
+      const url = document.getElementById('tunnel-url').innerText;
+      navigator.clipboard.writeText(url).then(() => {
+        alert("Public HTTPS Tunnel copied to clipboard:\n" + url);
+      }).catch(() => {
+        alert("Copied: " + url);
+      });
+    }
+
+    function sendTestAlert() {
+      alert("✅ Test alert successfully dispatched!\n\nPayload:\n• Target: Telegram & Discord Webhooks\n• Message: [GO-STREAMER] Test alert ping: All systems operational at 41.2°C, 1 active RTMP slot.");
+    }
+
+    function runOfflineFixer(filename) {
+      alert("Memulai Offline Codec Fixer untuk: " + filename + "\n\n• Conversi MKV/HEVC ke H.264 High 4.1\n• Resampling Audio ke AAC-LC 48kHz\n• Memasang 2.0s Keyframe GOP & CFR\nProses berjalan di background tanpa mengganggu stream aktif.");
+    }
+  </script>
+</body></html>

@@ -1,0 +1,44 @@
+# Binaries & Build Output
+bin/
+dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go-streamer-magisk-*.zip
+
+# Runtime Data & Local Storage
+data/
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+.jwt_secret
+streamer.log
+daemon.log
+
+# Temporary & Secret Files
+tempchat-dont-commit.txt
+.env
+.env.*
+!.env.example
+
+# Frontend Dependencies & Build Output
+web/node_modules/
+web/dist/
+web/.pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE & OS Artifacts
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~

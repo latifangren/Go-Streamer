@@ -1,0 +1,97 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-and-lint:
+    name: Test & Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (Frontend Build)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: 'web/package.json'
+
+      - name: Build React SPA Frontend
+        run: |
+          cd web
+          npm install
+          npm run build
+
+      - name: Setup Go Toolchain
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          check-latest: true
+          cache: true
+
+      - name: Verify Go Modules
+        run: go mod verify
+
+      - name: Run Static Analysis (go vet)
+        run: go vet ./...
+
+      - name: Run Unit & Integration Tests
+        run: go test -v -race -covermode=atomic ./...
+
+  matrix-build:
+    name: Cross-Compilation Check
+    needs: test-and-lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: arm64
+            artifact: go-streamer-linux-arm64
+          - goos: linux
+            goarch: arm
+            artifact: go-streamer-linux-arm
+          - goos: linux
+            goarch: amd64
+            artifact: go-streamer-linux-amd64
+          - goos: windows
+            goarch: amd64
+            artifact: go-streamer-windows-amd64.exe
+          - goos: darwin
+            goarch: arm64
+            artifact: go-streamer-darwin-arm64
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (Frontend Build)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: 'web/package.json'
+
+      - name: Build React SPA Frontend
+        run: |
+          cd web
+          npm install
+          npm run build
+
+      - name: Setup Go Toolchain
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Build Standalone Binary (${{ matrix.goos }}/${{ matrix.goarch }})
+        env:
+          CGO_ENABLED: '0'
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          mkdir -p bin
+          go build -v -trimpath -ldflags="-s -w" -o bin/${{ matrix.artifact }} cmd/server/main.go embed.go
