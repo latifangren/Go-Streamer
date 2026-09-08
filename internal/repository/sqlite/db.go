@@ -126,6 +126,7 @@ func (db *DB) migrate(ctx context.Context) error {
 
 		`CREATE TABLE IF NOT EXISTS schedules (
 			id TEXT PRIMARY KEY,
+			title TEXT NOT NULL DEFAULT '',
 			slot_id INTEGER NOT NULL,
 			cron_expr TEXT NOT NULL,
 			duration_minutes INTEGER DEFAULT 120,
@@ -182,6 +183,9 @@ func (db *DB) migrate(ctx context.Context) error {
 			return err
 		}
 	}
+
+	// Safe migration statement to add column if it doesn't exist yet
+	_, _ = db.ExecContext(ctx, "ALTER TABLE schedules ADD COLUMN title TEXT NOT NULL DEFAULT ''")
 
 	return nil
 }

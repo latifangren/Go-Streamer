@@ -23,73 +23,14 @@ const initialMetrics: SystemMetrics = {
   timestamp: new Date().toISOString(),
 };
 
-const initialTelemetries: Record<number, StreamTelemetry> = {
-  1: {
-    slot_number: 1,
-    status: 'running',
-    frame: 14920,
-    fps: 30.0,
-    bitrate_kbps: 2420.5,
-    duration: '04:12:35',
-    speed: '1.00x',
-    dropped_frames: 0,
-    pts_sync_ms: 0.0,
-    keyframe_cadence: '2.00s GOP',
-    net_latency_ms: 38,
-    timestamp: new Date().toISOString(),
-  },
-  2: {
-    slot_number: 2,
-    status: 'idle',
-    frame: 0,
-    fps: 0,
-    bitrate_kbps: 0,
-    duration: '00:00:00',
-    speed: '0.00x',
-    dropped_frames: 0,
-    pts_sync_ms: 0.0,
-    keyframe_cadence: 'Standby',
-    net_latency_ms: 0,
-    timestamp: new Date().toISOString(),
-  },
-};
+const initialTelemetries: Record<number, StreamTelemetry> = {};
 
 const initialLogs: LogEntry[] = [
   {
-    id: '1',
+    id: 'boot-1',
     tag: 'SYS',
-    timestamp: '08:00:01',
-    message: 'Ingest node spawned PGID:4192, worker uid=0, renice -10',
-  },
-  {
-    id: '2',
-    tag: 'CONCAT',
-    timestamp: '08:00:02',
-    message: 'Loaded playlist /storage/emulated/0/stream_pool/playlist.txt [3 files, auto-loop: enabled]',
-  },
-  {
-    id: '3',
-    tag: 'CONCAT',
-    timestamp: '08:00:02',
-    message: 'Stream #0:0: Video: h264 (High) (avc1), yuv420p, 1920x1080 [SAR 1:1], 2400 kb/s, 30 fps',
-  },
-  {
-    id: '4',
-    tag: 'OVERLAY',
-    timestamp: '08:00:02',
-    message: 'Dynamic clock filter bound: %{localtime\\:%H\\:%M\\:%S} (alpha: 0.85)',
-  },
-  {
-    id: '5',
-    tag: 'RTMP',
-    timestamp: '08:00:03',
-    message: 'TCP Handshake OK -> rtmp://a.rtmp.youtube.com/live2 (latency: 38ms)',
-  },
-  {
-    id: '6',
-    tag: 'RTMP',
-    timestamp: '08:00:04',
-    message: 'Publishing stream payload: 2420 kb/s @ 30.00 fps [ZERO-FRAME-DROP]',
+    timestamp: new Date().toLocaleTimeString('id-ID', { hour12: false }),
+    message: 'Live node UI ready. Awaiting telemetry feed...',
   },
 ];
 
@@ -98,6 +39,7 @@ export function useWebSocket() {
   const [telemetries, setTelemetries] = useState<Record<number, StreamTelemetry>>(initialTelemetries);
   const [logs, setLogs] = useState<LogEntry[]>(initialLogs);
   const [isConnected, setIsConnected] = useState<boolean>(false);
+  const isConnectedRef = useRef<boolean>(false);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMountedRef = useRef<boolean>(true);
@@ -126,6 +68,7 @@ export function useWebSocket() {
       ws.onopen = () => {
         if (!isMountedRef.current) return;
         setIsConnected(true);
+        isConnectedRef.current = true;
         console.log('[WebSocket] Connected to Go-Streamer backend');
       };
 
@@ -165,13 +108,15 @@ export function useWebSocket() {
               }
               break;
 
-            case 'slot_status_changed':
-              if (payload && typeof payload.slot_number === 'number') {
+            case 'slot_status_changed': {
+              const sNum = Number(payload?.slot_number || payload?.slot_id);
+              if (sNum) {
+                const newStatus = payload.status || 'idle';
                 setTelemetries((prev) => ({
                   ...prev,
-                  [payload.slot_number]: {
-                    ...(prev[payload.slot_number] || {
-                      slot_number: payload.slot_number,
+                  [sNum]: {
+                    ...(prev[sNum] || {
+                      slot_number: sNum,
                       frame: 0,
                       fps: 0,
                       bitrate_kbps: 0,
@@ -183,22 +128,27 @@ export function useWebSocket() {
                       net_latency_ms: 0,
                       timestamp: new Date().toISOString(),
                     }),
-                    status: payload.status,
+                    status: newStatus,
+                    ...(newStatus === 'idle' || newStatus === 'error'
+                      ? { fps: 0, bitrate_kbps: 0, speed: '0.00x' }
+                      : {}),
                   },
                 }));
-                const logTag: LogEntry['tag'] = payload.status === 'running' ? 'RTMP' : 'SYS';
+                const logTag: LogEntry['tag'] =
+                  newStatus === 'running' ? 'RTMP' : newStatus === 'error' ? 'ERR' : 'SYS';
                 const timeNow = new Date().toLocaleTimeString('id-ID', { hour12: false });
                 setLogs((prev) => [
                   {
                     id: Math.random().toString(),
                     tag: logTag,
                     timestamp: timeNow,
-                    message: `Slot ${payload.slot_number} status changed to ${payload.status}`,
+                    message: `Slot ${sNum} status changed to ${newStatus}`,
                   },
                   ...prev.slice(0, 99),
                 ]);
               }
               break;
+            }
 
             case 'killswitch_activated':
               setTelemetries((prev) => {
@@ -218,11 +168,75 @@ export function useWebSocket() {
                   id: Math.random().toString(),
                   tag: 'ERR',
                   timestamp: new Date().toLocaleTimeString('id-ID', { hour12: false }),
-                  message: 'EMERGENCY KILL SWITCH: all processes terminated.',
+                  message: payload?.message || 'EMERGENCY KILL SWITCH: all processes terminated.',
                 },
                 ...prev.slice(0, 99),
               ]);
               break;
+
+            case 'alert_settings_updated': {
+              const timeNow = new Date().toLocaleTimeString('id-ID', { hour12: false });
+              setLogs((prev) => [
+                {
+                  id: Math.random().toString(),
+                  tag: 'ALERT',
+                  timestamp: timeNow,
+                  message: 'Alert configuration updated successfully.',
+                },
+                ...prev.slice(0, 99),
+              ]);
+              break;
+            }
+
+            case 'tunnel_status_changed': {
+              const timeNow = new Date().toLocaleTimeString('id-ID', { hour12: false });
+              const isAct = Boolean(payload?.is_active);
+              const prov = payload?.provider || 'Cloudflare';
+              const pubUrl = payload?.public_url ? ` (${payload.public_url})` : '';
+              setLogs((prev) => [
+                {
+                  id: Math.random().toString(),
+                  tag: 'SYS',
+                  timestamp: timeNow,
+                  message: `Tunnel ${prov}: ${isAct ? 'CONNECTED' + pubUrl : 'DISCONNECTED'}`,
+                },
+                ...prev.slice(0, 99),
+              ]);
+              break;
+            }
+
+            case 'video_uploaded': {
+              const timeNow = new Date().toLocaleTimeString('id-ID', { hour12: false });
+              const vidName = payload?.original_name || payload?.filename || 'video file';
+              setLogs((prev) => [
+                {
+                  id: Math.random().toString(),
+                  tag: 'SYS',
+                  timestamp: timeNow,
+                  message: `Video uploaded: ${vidName}`,
+                },
+                ...prev.slice(0, 99),
+              ]);
+              break;
+            }
+
+            case 'codec_job_updated':
+            case 'codec_job_created': {
+              const timeNow = new Date().toLocaleTimeString('id-ID', { hour12: false });
+              const jobStatus = payload?.status || 'processing';
+              const progressStr =
+                payload?.progress_percent !== undefined ? ` [${payload.progress_percent}%]` : '';
+              setLogs((prev) => [
+                {
+                  id: Math.random().toString(),
+                  tag: 'CONCAT',
+                  timestamp: timeNow,
+                  message: `Transcode job ${jobStatus}${progressStr}`,
+                },
+                ...prev.slice(0, 99),
+              ]);
+              break;
+            }
 
             case 'log':
               if (payload) {
@@ -258,6 +272,7 @@ export function useWebSocket() {
       ws.onclose = () => {
         if (!isMountedRef.current) return;
         setIsConnected(false);
+        isConnectedRef.current = false;
         wsRef.current = null;
         if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
         reconnectTimeoutRef.current = setTimeout(() => {
@@ -278,27 +293,13 @@ export function useWebSocket() {
 
     // Fallback heartbeat animation bila backend belum tersambung
     const interval = setInterval(() => {
-      if (!isConnected) {
+      if (!isConnectedRef.current) {
         setMetrics((prev) => ({
           ...prev,
           cpu_percent: Math.max(12, Math.min(38, +(prev.cpu_percent + (Math.random() * 2 - 1)).toFixed(1))),
           temperature_c: Math.max(39, Math.min(46, +(prev.temperature_c + (Math.random() * 0.4 - 0.2)).toFixed(1))),
           timestamp: new Date().toISOString(),
         }));
-
-        setTelemetries((prev) => {
-          if (!prev[1] || prev[1].status !== 'running') return prev;
-          return {
-            ...prev,
-            1: {
-              ...prev[1],
-              frame: prev[1].frame + 30,
-              fps: +(29.9 + Math.random() * 0.2).toFixed(1),
-              bitrate_kbps: +(2410 + Math.random() * 30).toFixed(1),
-              timestamp: new Date().toISOString(),
-            },
-          };
-        });
       }
     }, 1000);
 
@@ -311,7 +312,7 @@ export function useWebSocket() {
         wsRef.current = null;
       }
     };
-  }, [connect, isConnected]);
+  }, [connect]);
 
   const sendMessage = useCallback((data: any) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {

@@ -314,7 +314,8 @@ func (h *VideoHandler) RenameVideo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		Name string `json:"name"`
+		Name     string `json:"name"`
+		Filename string `json:"filename"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid json body: "+err.Error())
@@ -322,6 +323,11 @@ func (h *VideoHandler) RenameVideo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req.Name = strings.TrimSpace(req.Name)
+	req.Filename = strings.TrimSpace(req.Filename)
+	if req.Name == "" && req.Filename != "" {
+		req.Name = req.Filename
+	}
+
 	if req.Name == "" {
 		writeError(w, http.StatusBadRequest, "new name cannot be empty")
 		return
@@ -336,10 +342,14 @@ func (h *VideoHandler) RenameVideo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	v, err := h.videoService.GetVideo(r.Context(), id)
+	if err == nil {
+		writeJSON(w, http.StatusOK, v)
+		return
+	}
+
 	writeJSON(w, http.StatusOK, map[string]string{
 		"message": "video renamed successfully",
-		"id":      id,
-		"name":    req.Name,
 	})
 }
 

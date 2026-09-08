@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Globe,
   Send,
@@ -28,9 +28,39 @@ export const RemoteAlerts: React.FC<RemoteAlertsProps> = ({
   const [isTestingTelegram, setIsTestingTelegram] = useState(false);
   const [isTestingDiscord, setIsTestingDiscord] = useState(false);
 
-  const [tgToken, setTgToken] = useState(alerts.telegram_bot_token || '');
+  const [tgToken, setTgToken] = useState(
+    alerts.telegram_bot_token && !alerts.telegram_bot_token.includes('****')
+      ? alerts.telegram_bot_token
+      : ''
+  );
   const [tgChatId, setTgChatId] = useState(alerts.telegram_chat_id || '');
-  const [discordUrl, setDiscordUrl] = useState(alerts.discord_webhook_url || '');
+  const [discordUrl, setDiscordUrl] = useState(
+    alerts.discord_webhook_url && !alerts.discord_webhook_url.includes('****')
+      ? alerts.discord_webhook_url
+      : ''
+  );
+
+  const [triggerCrash, setTriggerCrash] = useState(alerts.trigger_on_crash ?? true);
+  const [triggerThermal, setTriggerThermal] = useState(alerts.trigger_on_thermal ?? true);
+  const [thermalThreshold, setThermalThreshold] = useState(alerts.thermal_threshold_c || 48.0);
+  const [triggerStorage, setTriggerStorage] = useState(alerts.trigger_on_low_storage ?? true);
+  const [storageThreshold, setStorageThreshold] = useState(alerts.low_storage_threshold_gb || 5.0);
+
+  useEffect(() => {
+    setTgChatId(alerts.telegram_chat_id || '');
+    setTriggerCrash(alerts.trigger_on_crash ?? true);
+    setTriggerThermal(alerts.trigger_on_thermal ?? true);
+    setThermalThreshold(alerts.thermal_threshold_c || 48.0);
+    setTriggerStorage(alerts.trigger_on_low_storage ?? true);
+    setStorageThreshold(alerts.low_storage_threshold_gb || 5.0);
+  }, [
+    alerts.telegram_chat_id,
+    alerts.trigger_on_crash,
+    alerts.trigger_on_thermal,
+    alerts.thermal_threshold_c,
+    alerts.trigger_on_low_storage,
+    alerts.low_storage_threshold_gb,
+  ]);
 
   const handleCopyUrl = () => {
     navigator.clipboard.writeText(tunnel.public_url);
@@ -52,11 +82,26 @@ export const RemoteAlerts: React.FC<RemoteAlertsProps> = ({
 
   const handleSaveAlerts = (e: React.FormEvent) => {
     e.preventDefault();
-    onUpdateAlerts({
-      telegram_bot_token: tgToken,
-      telegram_chat_id: tgChatId,
-      discord_webhook_url: discordUrl,
-    });
+    const payload: AlertSettings = {
+      ...alerts,
+      telegram_enabled: tgToken.trim() !== '' || alerts.has_telegram_token ? alerts.telegram_enabled : false,
+      telegram_chat_id: tgChatId.trim(),
+      discord_enabled: discordUrl.trim() !== '' || alerts.has_discord_webhook ? alerts.discord_enabled : false,
+      trigger_on_crash: triggerCrash,
+      trigger_on_thermal: triggerThermal,
+      thermal_threshold_c: Number(thermalThreshold),
+      trigger_on_low_storage: triggerStorage,
+      low_storage_threshold_gb: Number(storageThreshold),
+    };
+
+    if (tgToken.trim() !== '' && !tgToken.includes('****')) {
+      payload.telegram_bot_token = tgToken.trim();
+    }
+    if (discordUrl.trim() !== '' && !discordUrl.includes('****')) {
+      payload.discord_webhook_url = discordUrl.trim();
+    }
+
+    onUpdateAlerts(payload);
     alert('Pengaturan Telegram & Discord berhasil disimpan!');
   };
 
@@ -207,12 +252,23 @@ export const RemoteAlerts: React.FC<RemoteAlertsProps> = ({
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-neutral-600 text-[10px] uppercase font-bold mb-0.5">
-                    Bot Token:
-                  </label>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <label className="block text-neutral-600 text-[10px] uppercase font-bold">
+                      Bot Token:
+                    </label>
+                    {alerts.has_telegram_token && (
+                      <span className="text-[9px] bg-emerald-100 text-emerald-800 border border-black font-bold px-1 rounded">
+                        TERKONFIGURASI
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="password"
-                    placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
+                    placeholder={
+                      alerts.has_telegram_token
+                        ? 'Token tersimpan (terkonfigurasi) - isi jika ingin mengganti'
+                        : '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11'
+                    }
                     value={tgToken}
                     onChange={(e) => setTgToken(e.target.value)}
                     className="w-full border border-black rounded p-1.5 text-xs bg-neutral-50"
@@ -250,12 +306,23 @@ export const RemoteAlerts: React.FC<RemoteAlertsProps> = ({
                 </button>
               </div>
               <div>
-                <label className="block text-neutral-600 text-[10px] uppercase font-bold mb-0.5">
-                  Discord Webhook URL:
-                </label>
+                <div className="flex items-center justify-between mb-0.5">
+                  <label className="block text-neutral-600 text-[10px] uppercase font-bold">
+                    Discord Webhook URL:
+                  </label>
+                  {alerts.has_discord_webhook && (
+                    <span className="text-[9px] bg-emerald-100 text-emerald-800 border border-black font-bold px-1 rounded">
+                      TERKONFIGURASI
+                    </span>
+                  )}
+                </div>
                 <input
                   type="text"
-                  placeholder="https://discord.com/api/webhooks/..."
+                  placeholder={
+                    alerts.has_discord_webhook
+                      ? 'Webhook tersimpan (terkonfigurasi) - isi jika ingin mengganti'
+                      : 'https://discord.com/api/webhooks/...'
+                  }
                   value={discordUrl}
                   onChange={(e) => setDiscordUrl(e.target.value)}
                   className="w-full border border-black rounded p-1.5 text-xs bg-neutral-50"
@@ -264,19 +331,74 @@ export const RemoteAlerts: React.FC<RemoteAlertsProps> = ({
             </div>
 
             {/* Trigger Thresholds */}
-            <div className="p-3 bg-neoYellow border-2 border-black rounded-lg flex flex-wrap items-center justify-between gap-2 text-[11px] shadow-[2px_2px_0px_#000]">
+            <div className="p-3 bg-neoYellow border-2 border-black rounded-lg space-y-2.5 text-[11px] shadow-[2px_2px_0px_#000]">
               <div className="flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-black" />
+                <ShieldAlert className="w-4 h-4 text-black shrink-0" />
                 <span className="font-bold text-black">
-                  Auto-alert saat: FFmpeg Crash (Non-zero exit), Suhu SoC &gt;48°C, atau Buffer Disk &lt;2GB.
+                  Auto-alert Guard Rules &amp; Thresholds:
                 </span>
               </div>
-              <button
-                type="submit"
-                className="neo-btn bg-black text-white border-2 border-black px-3 py-1 rounded-md font-black text-xs shadow-[2px_2px_0px_#000] cursor-pointer"
-              >
-                Simpan Konfigurasi Alert
-              </button>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 pt-1 border-t border-black/20">
+                <label className="flex items-center gap-2 cursor-pointer font-bold select-none">
+                  <input
+                    type="checkbox"
+                    checked={triggerCrash}
+                    onChange={(e) => setTriggerCrash(e.target.checked)}
+                    className="accent-black w-3.5 h-3.5"
+                  />
+                  <span>FFmpeg Crash Guard</span>
+                </label>
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-1.5 cursor-pointer font-bold select-none">
+                    <input
+                      type="checkbox"
+                      checked={triggerThermal}
+                      onChange={(e) => setTriggerThermal(e.target.checked)}
+                      className="accent-black w-3.5 h-3.5"
+                    />
+                    <span>Thermal Guard &gt;</span>
+                  </label>
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      value={thermalThreshold}
+                      onChange={(e) => setThermalThreshold(Number(e.target.value))}
+                      className="w-14 border border-black rounded px-1 py-0.5 text-xs bg-white text-center font-bold"
+                      step="0.5"
+                    />
+                    <span className="font-bold">°C</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-1.5 cursor-pointer font-bold select-none">
+                    <input
+                      type="checkbox"
+                      checked={triggerStorage}
+                      onChange={(e) => setTriggerStorage(e.target.checked)}
+                      className="accent-black w-3.5 h-3.5"
+                    />
+                    <span>Low Disk &lt;</span>
+                  </label>
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      value={storageThreshold}
+                      onChange={(e) => setStorageThreshold(Number(e.target.value))}
+                      className="w-14 border border-black rounded px-1 py-0.5 text-xs bg-white text-center font-bold"
+                      step="0.5"
+                    />
+                    <span className="font-bold">GB</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end pt-1">
+                <button
+                  type="submit"
+                  className="neo-btn bg-black text-white border-2 border-black px-3 py-1 rounded-md font-black text-xs shadow-[2px_2px_0px_#000] cursor-pointer"
+                >
+                  Simpan Konfigurasi Alert
+                </button>
+              </div>
             </div>
           </form>
         </div>

@@ -23,7 +23,7 @@ func NewScheduleRepository(db *sql.DB) *ScheduleRepository {
 // ListAll mengambil seluruh jadwal streaming yang tersimpan.
 func (r *ScheduleRepository) ListAll(ctx context.Context) ([]*domain.Schedule, error) {
 	query := `
-		SELECT sc.id, sc.slot_id, sc.cron_expr, sc.duration_minutes, sc.overlap_guard_policy,
+		SELECT sc.id, sc.title, sc.slot_id, sc.cron_expr, sc.duration_minutes, sc.overlap_guard_policy,
 		       sc.is_enabled, sc.last_run_at, sc.next_run_at, sc.created_at,
 		       s.slot_number, s.name, s.status, s.rtmp_url
 		FROM schedules sc
@@ -45,7 +45,7 @@ func (r *ScheduleRepository) ListAll(ctx context.Context) ([]*domain.Schedule, e
 		var sName, sStatus, sRTMP sql.NullString
 
 		if err := rows.Scan(
-			&sc.ID, &sc.SlotID, &sc.CronExpr, &sc.DurationMinutes, &sc.OverlapGuardPolicy,
+			&sc.ID, &sc.Title, &sc.SlotID, &sc.CronExpr, &sc.DurationMinutes, &sc.OverlapGuardPolicy,
 			&sc.IsEnabled, &lastRun, &nextRun, &sc.CreatedAt,
 			&sSlotNum, &sName, &sStatus, &sRTMP,
 		); err != nil {
@@ -80,7 +80,7 @@ func (r *ScheduleRepository) ListAll(ctx context.Context) ([]*domain.Schedule, e
 // GetByID mengambil satu jadwal streaming berdasarkan ID.
 func (r *ScheduleRepository) GetByID(ctx context.Context, id string) (*domain.Schedule, error) {
 	query := `
-		SELECT sc.id, sc.slot_id, sc.cron_expr, sc.duration_minutes, sc.overlap_guard_policy,
+		SELECT sc.id, sc.title, sc.slot_id, sc.cron_expr, sc.duration_minutes, sc.overlap_guard_policy,
 		       sc.is_enabled, sc.last_run_at, sc.next_run_at, sc.created_at,
 		       s.slot_number, s.name, s.status, s.rtmp_url
 		FROM schedules sc
@@ -94,7 +94,7 @@ func (r *ScheduleRepository) GetByID(ctx context.Context, id string) (*domain.Sc
 	var sName, sStatus, sRTMP sql.NullString
 
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
-		&sc.ID, &sc.SlotID, &sc.CronExpr, &sc.DurationMinutes, &sc.OverlapGuardPolicy,
+		&sc.ID, &sc.Title, &sc.SlotID, &sc.CronExpr, &sc.DurationMinutes, &sc.OverlapGuardPolicy,
 		&sc.IsEnabled, &lastRun, &nextRun, &sc.CreatedAt,
 		&sSlotNum, &sName, &sStatus, &sRTMP,
 	)
@@ -142,13 +142,14 @@ func (r *ScheduleRepository) Create(ctx context.Context, sc *domain.Schedule) er
 
 	query := `
 		INSERT INTO schedules (
-			id, slot_id, cron_expr, duration_minutes, overlap_guard_policy,
+			id, title, slot_id, cron_expr, duration_minutes, overlap_guard_policy,
 			is_enabled, last_run_at, next_run_at, created_at
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
 	_, err := r.db.ExecContext(ctx, query,
 		sc.ID,
+		sc.Title,
 		sc.SlotID,
 		sc.CronExpr,
 		sc.DurationMinutes,

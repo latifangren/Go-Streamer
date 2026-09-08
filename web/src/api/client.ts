@@ -5,6 +5,8 @@ import {
   ScheduleItem,
   TunnelSettings,
   AlertSettings,
+  TranscodeJob,
+  SystemInfo,
 } from '../types';
 
 const BASE_URL = '/api/v1';
@@ -38,7 +40,7 @@ export const api = {
   // System
   getHealth: () => request<{ status: string; timestamp: string }>('/health'),
   getSystemMetrics: () => request<SystemMetrics>('/system/metrics'),
-  getSystemInfo: () => request<any>('/system/info'),
+  getSystemInfo: () => request<SystemInfo>('/system/info'),
   killSwitch: () =>
     request<{ message: string }>('/system/killswitch', { method: 'POST' }),
 
@@ -85,7 +87,7 @@ export const api = {
   renameVideo: (id: string, newName: string) =>
     request<VideoItem>(`/videos/${id}/rename`, {
       method: 'PUT',
-      body: JSON.stringify({ filename: newName }),
+      body: JSON.stringify({ name: newName, filename: newName }),
     }),
   getStorageStats: () =>
     request<{
@@ -104,7 +106,7 @@ export const api = {
         body: JSON.stringify({ source_video_id: videoId }),
       }
     ),
-  listCodecJobs: () => request<any[]>('/codec/jobs'),
+  listCodecJobs: () => request<TranscodeJob[]>('/codec/jobs'),
 
   // Scheduler
   getSchedules: () => request<ScheduleItem[]>('/schedules'),

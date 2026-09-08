@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Sliders, Eye, EyeOff, Check, AlertCircle } from 'lucide-react';
 import { Slot } from '../types';
+import { STREAM_PLATFORMS, getPlatformPreset } from '../config/platforms';
 
 interface SlotConfigModalProps {
   slot: Slot | null;
@@ -36,21 +37,27 @@ export const SlotConfigModal: React.FC<SlotConfigModalProps> = ({
 
   if (!isOpen || !slot) return null;
 
-  const handlePlatformChange = (p: Slot['target_platform']) => {
+  const handlePlatformChange = (p: string) => {
     setPlatform(p);
-    if (p === 'youtube') setRtmpUrl('rtmp://a.rtmp.youtube.com/live2');
-    else if (p === 'facebook') setRtmpUrl('rtmps://live-api-s.facebook.com:443/rtmp/');
-    else if (p === 'twitch') setRtmpUrl('rtmp://live.twitch.tv/app/');
-    else if (p === 'custom' && !rtmpUrl) setRtmpUrl('rtmp://');
+    const preset = getPlatformPreset(p);
+    const isKnownUrl = STREAM_PLATFORMS.some((pl) => pl.defaultRtmpUrl === rtmpUrl);
+    if (!rtmpUrl || isKnownUrl || p !== 'custom') {
+      setRtmpUrl(preset.defaultRtmpUrl);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const mode = encodingMode === 'passthrough' ? 'copy' : 'transcode';
+    const enableOverlay = Boolean(overlayClockWIB || (watermarkText && watermarkText.trim() !== ''));
     onSave(slot.id, {
+      ...slot,
       target_platform: platform,
       rtmp_url: rtmpUrl,
       stream_key: streamKey,
+      mode,
       encoding_mode: encodingMode,
+      enable_overlay: enableOverlay,
       overlay_clock_wib: overlayClockWIB,
       overlay_watermark: watermarkText,
     });
@@ -85,21 +92,21 @@ export const SlotConfigModal: React.FC<SlotConfigModalProps> = ({
             <label className="block font-black text-neutral-800 uppercase mb-1.5">
               Target Streaming Platform:
             </label>
-            <div className="grid grid-cols-4 gap-1.5">
-              {(['youtube', 'facebook', 'twitch', 'custom'] as const).map((p) => {
-                const isSel = platform === p;
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+              {STREAM_PLATFORMS.map((p) => {
+                const isSel = platform?.toLowerCase() === p.id.toLowerCase();
                 return (
                   <button
-                    key={p}
+                    key={p.id}
                     type="button"
-                    onClick={() => handlePlatformChange(p)}
+                    onClick={() => handlePlatformChange(p.id)}
                     className={`neo-btn py-1.5 px-2 rounded-lg border-2 border-black font-black uppercase text-[11px] transition-all cursor-pointer ${
                       isSel
                         ? 'bg-neoMint shadow-[2px_2px_0px_#000]'
                         : 'bg-neutral-100 hover:bg-white text-neutral-700'
                     }`}
                   >
-                    {p}
+                    {p.name}
                   </button>
                 );
               })}
@@ -158,7 +165,7 @@ export const SlotConfigModal: React.FC<SlotConfigModalProps> = ({
               type="text"
               value={rtmpUrl}
               onChange={(e) => setRtmpUrl(e.target.value)}
-              placeholder="rtmp://a.rtmp.youtube.com/live2"
+              placeholder={getPlatformPreset(platform).defaultRtmpUrl}
               required
               className="w-full border-2 border-black rounded-lg p-2 font-mono text-xs focus:ring-0 focus:outline-none shadow-[2px_2px_0px_#000] bg-white"
             />
@@ -188,7 +195,7 @@ export const SlotConfigModal: React.FC<SlotConfigModalProps> = ({
               type={showStreamKey ? 'text' : 'password'}
               value={streamKey}
               onChange={(e) => setStreamKey(e.target.value)}
-              placeholder="xxxx-xxxx-xxxx-xxxx"
+              placeholder={getPlatformPreset(platform).streamKeyPlaceholder}
               className="w-full border-2 border-black rounded-lg p-2 font-mono text-xs focus:ring-0 focus:outline-none shadow-[2px_2px_0px_#000] bg-white"
             />
           </div>

@@ -103,6 +103,27 @@ func (h *SlotHandler) GetSlot(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, slot)
 }
 
+// updateSlotRequest mendefinisikan payload partial update untuk StreamSlot.
+type updateSlotRequest struct {
+	Name                *string `json:"name"`
+	SourceType          *string `json:"source_type"`
+	VideoID             *string `json:"video_id"`
+	TargetPlatform      *string `json:"target_platform"`
+	RTMPURL             *string `json:"rtmp_url"`
+	StreamKey           *string `json:"stream_key"`
+	Mode                *string `json:"mode"`
+	EncodingMode        *string `json:"encoding_mode"`
+	Quality             *string `json:"quality"`
+	Preset              *string `json:"preset"`
+	LoopPlayback        *bool   `json:"loop_playback"`
+	MaxDurationMinutes  *int    `json:"max_duration_minutes"`
+	AutoRestart         *bool   `json:"auto_restart"`
+	EnableOverlay       *bool   `json:"enable_overlay"`
+	OverlayClockWIB     *bool   `json:"overlay_clock_wib"`
+	OverlayWatermark    *string `json:"overlay_watermark"`
+	OverlayWatermarkPos *string `json:"overlay_watermark_pos"`
+}
+
 // UpdateSlot menangani PUT /api/v1/slots/{id}.
 func (h *SlotHandler) UpdateSlot(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
@@ -122,31 +143,69 @@ func (h *SlotHandler) UpdateSlot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req domain.StreamSlot
+	var req updateSlotRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid json body: "+err.Error())
 		return
 	}
 
-	// Update field yang diizinkan
-	slot.Name = req.Name
-	slot.SourceType = req.SourceType
-	slot.VideoID = req.VideoID
-	slot.TargetPlatform = req.TargetPlatform
-	slot.RTMPURL = req.RTMPURL
-	if req.StreamKey != "" {
-		slot.StreamKey = req.StreamKey
+	// Update field yang diizinkan (partial update)
+	if req.Name != nil {
+		slot.Name = *req.Name
 	}
-	slot.Mode = req.Mode
-	slot.Quality = req.Quality
-	slot.Preset = req.Preset
-	slot.LoopPlayback = req.LoopPlayback
-	slot.MaxDurationMinutes = req.MaxDurationMinutes
-	slot.AutoRestart = req.AutoRestart
-	slot.EnableOverlay = req.EnableOverlay
-	slot.OverlayClockWIB = req.OverlayClockWIB
-	slot.OverlayWatermark = req.OverlayWatermark
-	slot.OverlayWatermarkPos = req.OverlayWatermarkPos
+	if req.SourceType != nil {
+		slot.SourceType = *req.SourceType
+	}
+	if req.VideoID != nil {
+		slot.VideoID = req.VideoID
+	}
+	if req.TargetPlatform != nil {
+		slot.TargetPlatform = *req.TargetPlatform
+	}
+	if req.RTMPURL != nil {
+		slot.RTMPURL = *req.RTMPURL
+	}
+	if req.StreamKey != nil && *req.StreamKey != "" {
+		slot.StreamKey = *req.StreamKey
+	}
+	if req.Mode != nil && *req.Mode != "" {
+		slot.Mode = *req.Mode
+	} else if req.EncodingMode != nil && *req.EncodingMode != "" {
+		if *req.EncodingMode == "passthrough" {
+			slot.Mode = "copy"
+		} else if strings.HasPrefix(*req.EncodingMode, "transcode") {
+			slot.Mode = "transcode"
+		}
+	}
+	if req.Quality != nil {
+		slot.Quality = *req.Quality
+	}
+	if req.Preset != nil {
+		slot.Preset = *req.Preset
+	}
+	if req.LoopPlayback != nil {
+		slot.LoopPlayback = *req.LoopPlayback
+	}
+	if req.MaxDurationMinutes != nil {
+		slot.MaxDurationMinutes = *req.MaxDurationMinutes
+	}
+	if req.AutoRestart != nil {
+		slot.AutoRestart = *req.AutoRestart
+	}
+	if req.OverlayClockWIB != nil {
+		slot.OverlayClockWIB = *req.OverlayClockWIB
+	}
+	if req.OverlayWatermark != nil {
+		slot.OverlayWatermark = *req.OverlayWatermark
+	}
+	if req.OverlayWatermarkPos != nil {
+		slot.OverlayWatermarkPos = *req.OverlayWatermarkPos
+	}
+	if req.EnableOverlay != nil {
+		slot.EnableOverlay = *req.EnableOverlay
+	} else if slot.OverlayClockWIB || (slot.OverlayWatermark != "" && slot.OverlayWatermark != "none") {
+		slot.EnableOverlay = true
+	}
 
 	if err := h.slotRepo.Update(r.Context(), slot); err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to update slot: "+err.Error())

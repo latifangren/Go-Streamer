@@ -75,19 +75,31 @@ export const ControlDesk: React.FC<ControlDeskProps> = ({
       {/* 4 Core Metrics Cards */}
       <MetricsCards metrics={metrics} />
 
-      {/* Dual Streaming Slots Section */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {slots.map((slot) => (
-          <SlotCard
-            key={slot.id}
-            slot={slot}
-            telemetry={telemetries[slot.slot_number]}
-            onStart={onStartSlot}
-            onStop={onStopSlot}
-            onOpenConfig={handleOpenConfig}
-            onRefreshSnapshot={onRefreshSnapshot}
-          />
-        ))}
+      {/* Dynamic Streaming Slots Section */}
+      <section
+        className={
+          slots.length === 1
+            ? 'grid grid-cols-1 gap-4'
+            : 'grid grid-cols-1 lg:grid-cols-2 gap-4'
+        }
+      >
+        {slots.length === 0 ? (
+          <div className="col-span-full p-8 bg-white border-2 border-black rounded-xl text-center shadow-[3px_3px_0px_#000] font-mono">
+            <p className="text-sm font-bold text-neutral-600">Tidak ada slot streaming terdaftar.</p>
+          </div>
+        ) : (
+          slots.map((slot) => (
+            <SlotCard
+              key={slot.id}
+              slot={slot}
+              telemetry={telemetries[slot.slot_number]}
+              onStart={onStartSlot}
+              onStop={onStopSlot}
+              onOpenConfig={handleOpenConfig}
+              onRefreshSnapshot={onRefreshSnapshot}
+            />
+          ))
+        )}
       </section>
 
       {/* Retro Live Daemon Terminal & Audit Log Console */}

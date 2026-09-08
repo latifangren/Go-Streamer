@@ -123,6 +123,14 @@ func TestAPIRoutes(t *testing.T) {
 	if w.Code != http.StatusOK {
 		t.Errorf("PUT /api/v1/slots/1 returned %d", w.Code)
 	}
+	var updatedSlot domain.StreamSlot
+	_ = json.NewDecoder(w.Body).Decode(&updatedSlot)
+	if updatedSlot.Name != "Slot 1 Updated" {
+		t.Errorf("expected updated slot name 'Slot 1 Updated', got '%s'", updatedSlot.Name)
+	}
+	if !updatedSlot.AutoRestart {
+		t.Errorf("expected partial update to preserve AutoRestart=true")
+	}
 
 	// 9. POST /api/v1/videos/upload (Multipart upload)
 	var b bytes.Buffer
@@ -161,9 +169,9 @@ func TestAPIRoutes(t *testing.T) {
 		t.Errorf("GET /api/v1/videos/storage returned %d", w.Code)
 	}
 
-	// 12. PUT /api/v1/videos/{id}/rename
+	// 12. PUT /api/v1/videos/{id}/rename (testing "filename" fallback and domain.Video return)
 	if uploadedVideo.ID != "" {
-		renamePayload := `{"name": "renamed_video.mp4"}`
+		renamePayload := `{"filename": "renamed_video.mp4"}`
 		req = httptest.NewRequest(http.MethodPut, "/api/v1/videos/"+uploadedVideo.ID+"/rename", strings.NewReader(renamePayload))
 		req.Header.Set("Content-Type", "application/json")
 		w = httptest.NewRecorder()
@@ -171,10 +179,16 @@ func TestAPIRoutes(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Errorf("PUT /api/v1/videos/rename returned %d", w.Code)
 		}
+		var renamedVid domain.Video
+		if err := json.NewDecoder(w.Body).Decode(&renamedVid); err != nil {
+			t.Errorf("failed to decode renamed video response: %v", err)
+		} else if renamedVid.OriginalName != "renamed_video.mp4" {
+			t.Errorf("expected renamed video OriginalName 'renamed_video.mp4', got '%s'", renamedVid.OriginalName)
+		}
 	}
 
 	// 13. POST /api/v1/schedules
-	schedPayload := `{"slot_id": 1, "cron_expr": "0 12 * * *", "duration_minutes": 30, "overlap_guard_policy": "yield_priority", "is_enabled": true}`
+	schedPayload := `{"title": "Prime Time Stream", "slot_id": 1, "cron_expr": "0 12 * * *", "duration_minutes": 30, "overlap_guard_policy": "yield_priority", "is_enabled": true}`
 	req = httptest.NewRequest(http.MethodPost, "/api/v1/schedules", strings.NewReader(schedPayload))
 	req.Header.Set("Content-Type", "application/json")
 	w = httptest.NewRecorder()
@@ -184,6 +198,9 @@ func TestAPIRoutes(t *testing.T) {
 	}
 	var createdSched domain.Schedule
 	_ = json.NewDecoder(w.Body).Decode(&createdSched)
+	if createdSched.Title != "Prime Time Stream" {
+		t.Errorf("expected schedule title 'Prime Time Stream', got '%s'", createdSched.Title)
+	}
 
 	// 14. GET /api/v1/schedules
 	req = httptest.NewRequest(http.MethodGet, "/api/v1/schedules", nil)
@@ -228,13 +245,45 @@ func TestAPIRoutes(t *testing.T) {
 	}
 
 	// 19. PUT /api/v1/alerts/settings
-	alertUpdatePayload := `{"telegram_enabled": false, "discord_enabled": false, "trigger_on_crash": true, "trigger_on_thermal": true, "thermal_threshold_c": 50.0}`
+	alertUpdatePayload := `{"telegram_enabled": true, "telegram_bot_token": "my_secret_token", "discord_enabled": true, "discord_webhook_url": "https://discord.com/api/webhooks/my_secret", "trigger_on_crash": true, "trigger_on_thermal": true, "thermal_threshold_c": 50.0}`
 	req = httptest.NewRequest(http.MethodPut, "/api/v1/alerts/settings", strings.NewReader(alertUpdatePayload))
 	req.Header.Set("Content-Type", "application/json")
 	w = httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
 		t.Errorf("PUT /api/v1/alerts/settings returned %d", w.Code)
+	}
+	var alertResp map[string]interface{}
+	if err := json.NewDecoder(w.Body).Decode(&alertResp); err != nil {
+		t.Errorf("failed to decode alert response: %v", err)
+	} else {
+		if alertResp["has_telegram_token"] != true || alertResp["telegram_bot_token"] != "********" {
+			t.Errorf("expected masked telegram token, got %v", alertResp["telegram_bot_token"])
+		}
+		if alertResp["has_discord_webhook"] != true || alertResp["discord_webhook_url"] != "********" {
+			t.Errorf("expected masked discord webhook, got %v", alertResp["discord_webhook_url"])
+		}
+	}
+
+	// 19b. PUT /api/v1/alerts/settings (test clearing tokens with "")
+	clearAlertPayload := `{"telegram_enabled": false, "telegram_bot_token": "", "discord_enabled": false, "discord_webhook_url": ""}`
+	req = httptest.NewRequest(http.MethodPut, "/api/v1/alerts/settings", strings.NewReader(clearAlertPayload))
+	req.Header.Set("Content-Type", "application/json")
+	w = httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Errorf("PUT /api/v1/alerts/settings (clearing) returned %d", w.Code)
+	}
+	var clearAlertResp map[string]interface{}
+	if err := json.NewDecoder(w.Body).Decode(&clearAlertResp); err != nil {
+		t.Errorf("failed to decode alert response: %v", err)
+	} else {
+		if clearAlertResp["has_telegram_token"] != false || clearAlertResp["telegram_bot_token"] != nil {
+			t.Errorf("expected empty telegram token after clear, got %v", clearAlertResp["telegram_bot_token"])
+		}
+		if clearAlertResp["has_discord_webhook"] != false || clearAlertResp["discord_webhook_url"] != nil {
+			t.Errorf("expected empty discord webhook after clear, got %v", clearAlertResp["discord_webhook_url"])
+		}
 	}
 
 	// 20. GET /api/v1/codec/jobs

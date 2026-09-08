@@ -10,6 +10,7 @@ const (
 
 type Schedule struct {
 	ID                 string     `json:"id"`
+	Title              string     `json:"title"`
 	SlotID             int64      `json:"slot_id"`
 	CronExpr           string     `json:"cron_expr"`
 	DurationMinutes    int        `json:"duration_minutes"`

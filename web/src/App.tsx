@@ -383,13 +383,14 @@ export const App: React.FC = () => {
   const handleUpdateSlot = async (id: number, config: Partial<Slot>) => {
     const slot = slots.find((s) => s.id === id || s.slot_number === id);
     const slotNumber = slot?.slot_number || id;
+    const mergedConfig = slot ? { ...slot, ...config } : config;
 
     setSlots((prev) =>
       prev.map((s) => (s.id === id || s.slot_number === slotNumber ? { ...s, ...config } : s))
     );
 
     try {
-      await api.updateSlot(slotNumber, config);
+      await api.updateSlot(slotNumber, mergedConfig);
       addLog('SYS', `Konfigurasi Slot ${slotNumber} berhasil diperbarui di server.`);
       await refreshSlots();
       alert(`Konfigurasi Slot ${slotNumber} berhasil disimpan!`);

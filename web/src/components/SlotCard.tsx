@@ -8,6 +8,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { Slot, StreamTelemetry } from '../types';
+import { getPlatformPreset } from '../config/platforms';
 
 interface SlotCardProps {
   slot: Slot;
@@ -33,6 +34,7 @@ export const SlotCard: React.FC<SlotCardProps> = ({
 
   const isRunning = slot.status === 'running' || telemetry?.status === 'running';
   const playlist = slot.playlist || [];
+  const platformPreset = getPlatformPreset(slot.target_platform);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -45,26 +47,31 @@ export const SlotCard: React.FC<SlotCardProps> = ({
     }, 400);
   };
 
-  const currentFps = telemetry?.fps ?? (isRunning ? 30.0 : 0);
-  const currentBitrate = telemetry?.bitrate_kbps ?? (isRunning ? 2420 : 0);
-  const currentDuration = telemetry?.duration || (isRunning ? '04:12:35' : '00:00:00');
-  const currentSpeed = telemetry?.speed || (isRunning ? '1.00x' : '0.00x');
-  const droppedFrames = telemetry?.dropped_frames ?? 0;
-  const ptsSync = telemetry?.pts_sync_ms ?? 0.0;
-  const keyframeGOP = telemetry?.keyframe_cadence || (isRunning ? '2.00s GOP (STABLE)' : 'Standby');
-  const netLatency = telemetry?.net_latency_ms ?? (isRunning ? 38 : 0);
+  const currentFps = isRunning ? (telemetry?.fps ?? 0) : 0;
+  const currentBitrate = isRunning ? (telemetry?.bitrate_kbps ?? 0) : 0;
+  const currentDuration = isRunning ? (telemetry?.duration || '00:00:00') : '00:00:00';
+  const currentSpeed = isRunning ? (telemetry?.speed || '1.00x') : '0.00x';
+  const droppedFrames = isRunning ? (telemetry?.dropped_frames ?? 0) : 0;
+  const ptsSync = isRunning ? (telemetry?.pts_sync_ms ?? 0.0) : 0.0;
+  const keyframeGOP = isRunning ? (telemetry?.keyframe_cadence || '2.00s GOP') : 'Standby';
+  const netLatency = isRunning ? (telemetry?.net_latency_ms ?? 0) : 0;
 
   return (
     <article className="bg-white border-[2.5px] border-black rounded-xl p-4 shadow-[5px_5px_0px_#000] flex flex-col justify-between space-y-3.5">
       {/* Slot Header */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-black pb-2.5">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span
             className={`border-2 border-black font-mono font-black text-xs px-2.5 py-1 rounded-md shadow-[2px_2px_0px_#000] ${
               slot.slot_number === 1 ? 'bg-neoMint' : 'bg-neoBlue'
             }`}
           >
             SLOT {slot.slot_number} • {slot.slot_number === 1 ? 'PRIMARY ENGINE' : 'BACKUP ENGINE'}
+          </span>
+          <span
+            className={`border-2 border-black font-mono font-black text-[10px] px-2 py-0.5 rounded shadow-[1.5px_1.5px_0px_#000] uppercase ${platformPreset.badgeClass}`}
+          >
+            {platformPreset.name}
           </span>
           <div>
             <h2 className="font-extrabold text-sm md:text-base tracking-tight text-neutral-900 leading-tight">
